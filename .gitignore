@@ -145,3 +145,7 @@ pnpm-lock.yaml
 .hardcopy
 hardcopy.yaml
 .index
+
+# GraphQLite extension binaries
+*.dylib
+*.so

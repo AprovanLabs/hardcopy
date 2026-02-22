@@ -100,7 +100,7 @@ export function parseConflictMarkers(text: string): {
   remote: string;
 } | null {
   const match = text.match(
-    /<<<<<<< LOCAL\n([\s\S]*?)\n\|\|\|\|\|\|\| BASE\n([\s\S]*?)\n=======\n([\s\S]*?)\n>>>>>>> REMOTE/,
+    /<<<<<<< LOCAL\r?\n([\s\S]*?)\r?\n\|\|\|\|\|\|\| BASE\r?\n([\s\S]*?)\r?\n=======\r?\n([\s\S]*?)\r?\n>>>>>>> REMOTE/,
   );
   if (!match) return null;
   return {

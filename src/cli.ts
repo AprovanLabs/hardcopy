@@ -189,10 +189,16 @@ program
         );
         if (stats.conflicts > 0) {
           const conflicts = await hc.listConflicts();
-          await resolveConflictsInteractive(
+          const resolved = await resolveConflictsInteractive(
             hc,
             conflicts.map((c) => c.nodeId),
           );
+          if (resolved.length > 0) {
+            const retry = await hc.push(pattern, { force: options?.force });
+            console.log(
+              `Retry push: pushed ${retry.pushed}, skipped ${retry.skipped}, conflicts ${retry.conflicts}`,
+            );
+          }
         }
         if (stats.errors.length > 0) {
           console.error("Errors:");
@@ -243,12 +249,20 @@ program
 async function resolveConflictsInteractive(
   hc: Hardcopy,
   nodeIds: string[],
-): Promise<void> {
+): Promise<string[]> {
   const rl = createInterface({ input, output });
+  const resolved: string[] = [];
   try {
     for (const nodeId of nodeIds) {
-      const conflict = await hc.getConflict(nodeId);
-      if (!conflict) continue;
+      const detail = await hc.getConflictDetail(nodeId);
+      if (!detail) continue;
+      const conflict = detail.info;
+
+      console.log(`\nConflict: ${nodeId}`);
+      console.log(`Artifact: ${detail.artifactPath}`);
+      if (detail.body.trim()) {
+        console.log(detail.body.trim());
+      }
 
       const resolution: Record<string, "local" | "remote"> = {};
 
@@ -279,10 +293,12 @@ async function resolveConflictsInteractive(
 
       await hc.resolveConflict(nodeId, resolution);
       console.log(`Resolved conflict: ${nodeId}`);
+      resolved.push(nodeId);
     }
   } finally {
     rl.close();
   }
+  return resolved;
 }
 
 program

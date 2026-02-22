@@ -1,4 +1,4 @@
-import { mkdir, readFile, readdir, unlink, writeFile } from "fs/promises";
+import { mkdir, readFile, readdir, rm, writeFile } from "fs/promises";
 import { join } from "path";
 import matter from "gray-matter";
 import type { ConflictInfo, FieldConflict } from "./types";
@@ -92,7 +92,7 @@ export class ConflictStore {
   async remove(nodeId: string): Promise<void> {
     const filePath = this.getPath(nodeId);
     try {
-      await unlink(filePath);
+      await rm(filePath, { force: true });
     } catch {
       return;
     }
@@ -100,6 +100,10 @@ export class ConflictStore {
 
   private getPath(nodeId: string): string {
     return join(this.conflictsDir, `${encodeURIComponent(nodeId)}.md`);
+  }
+
+  getArtifactPath(nodeId: string): string {
+    return this.getPath(nodeId);
   }
 }
 

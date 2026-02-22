@@ -54,7 +54,7 @@ sources:
     provider: github
     orgs: [AprovanLabs]
     # Or specify repos directly:
-    # repos: [AprovanLabs/kossabos, AprovanLabs/hardcopy]
+    # repos: [AprovanLabs/zolvery, AprovanLabs/hardcopy]
 
   - name: agents
     provider: a2a
@@ -83,6 +83,16 @@ views:
     render:
       - path: "{{attrs.number}}.github.issue.md"
         type: github.Issue
+```
+
+### Conflict Resolution
+
+Conflict resolution uses `diff3` for clean merges, with automatic LLM fallback for conflicts. Configure via environment variables:
+
+```bash
+export OPENAI_BASE_URL=https://api.openai.com/v1  # or any OpenAI-compatible endpoint
+export OPENAI_API_KEY=sk-...
+export OPENAI_MODEL=gpt-4o                        # optional, defaults to gpt-4o
 ```
 
 ### Providers
