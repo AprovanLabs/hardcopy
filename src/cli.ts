@@ -5,6 +5,7 @@ import { createInterface } from "node:readline/promises";
 import { stdin as input, stdout as output } from "process";
 import { minimatch } from "minimatch";
 import { Hardcopy, initHardcopy } from "./hardcopy";
+import { serveMcp } from "./mcp-server";
 
 const program = new Command();
 
@@ -344,5 +345,12 @@ function formatChange(change: {
       : JSON.stringify(change.newValue);
   return `${old} → ${newVal}`;
 }
+
+program
+  .command("mcp-serve")
+  .description("Start MCP server for LLM tool integration")
+  .action(async () => {
+    await serveMcp(process.cwd());
+  });
 
 program.parse();

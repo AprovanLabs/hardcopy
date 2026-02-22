@@ -10,3 +10,4 @@ export * from "./conflict";
 export * from "./conflict-store";
 export * from "./merge";
 export * from "./llm-merge";
+export { createMcpServer, serveMcp } from "./mcp-server";
