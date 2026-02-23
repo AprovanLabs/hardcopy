@@ -20,7 +20,7 @@ export function createMcpServer(root: string): Server {
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
     tools: [
       {
-        name: "hardcopy_sync",
+        name: "sync",
         description: "Sync all configured remote sources to local database",
         inputSchema: {
           type: "object",
@@ -28,7 +28,7 @@ export function createMcpServer(root: string): Server {
         },
       },
       {
-        name: "hardcopy_status",
+        name: "status",
         description: "Show sync status including changed files and conflicts",
         inputSchema: {
           type: "object",
@@ -36,7 +36,7 @@ export function createMcpServer(root: string): Server {
         },
       },
       {
-        name: "hardcopy_refresh",
+        name: "refresh",
         description: "Refresh local files from database for a view pattern",
         inputSchema: {
           type: "object",
@@ -61,7 +61,7 @@ export function createMcpServer(root: string): Server {
         },
       },
       {
-        name: "hardcopy_diff",
+        name: "diff",
         description:
           "Show local changes vs synced state for files matching pattern",
         inputSchema: {
@@ -75,7 +75,7 @@ export function createMcpServer(root: string): Server {
         },
       },
       {
-        name: "hardcopy_push",
+        name: "push",
         description: "Push local changes to remote sources",
         inputSchema: {
           type: "object",
@@ -93,7 +93,7 @@ export function createMcpServer(root: string): Server {
         },
       },
       {
-        name: "hardcopy_conflicts",
+        name: "conflicts",
         description: "List all unresolved conflicts",
         inputSchema: {
           type: "object",
@@ -101,7 +101,7 @@ export function createMcpServer(root: string): Server {
         },
       },
       {
-        name: "hardcopy_resolve",
+        name: "resolve",
         description: "Resolve a specific conflict",
         inputSchema: {
           type: "object",
@@ -136,19 +136,19 @@ export function createMcpServer(root: string): Server {
       await hc.loadConfig();
 
       switch (name) {
-        case "hardcopy_sync":
+        case "sync":
           return await handleSync(hc);
-        case "hardcopy_status":
+        case "status":
           return await handleStatus(hc);
-        case "hardcopy_refresh":
+        case "refresh":
           return await handleRefresh(hc, args as unknown as RefreshArgs);
-        case "hardcopy_diff":
+        case "diff":
           return await handleDiff(hc, args as unknown as DiffArgs);
-        case "hardcopy_push":
+        case "push":
           return await handlePush(hc, args as unknown as PushArgs);
-        case "hardcopy_conflicts":
+        case "conflicts":
           return await handleConflicts(hc);
-        case "hardcopy_resolve":
+        case "resolve":
           return await handleResolve(hc, args as unknown as ResolveArgs);
         default:
           throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
@@ -157,7 +157,9 @@ export function createMcpServer(root: string): Server {
       if (error instanceof McpError) throw error;
       throw new McpError(
         ErrorCode.InternalError,
-        `Failed to execute ${name}: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to execute ${name}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
       );
     } finally {
       await hc.close();
@@ -244,8 +246,7 @@ async function handleRefresh(hc: Hardcopy, args: RefreshArgs) {
 
   const views = await hc.getViews();
   const matching = views.filter(
-    (v) =>
-      v === pattern || v.startsWith(pattern) || pattern.includes("*"),
+    (v) => v === pattern || v.startsWith(pattern) || pattern.includes("*"),
   );
 
   if (matching.length === 0) {
@@ -280,7 +281,9 @@ async function handleRefresh(hc: Hardcopy, args: RefreshArgs) {
   }
 
   return {
-    content: [{ type: "text" as const, text: JSON.stringify(results, null, 2) }],
+    content: [
+      { type: "text" as const, text: JSON.stringify(results, null, 2) },
+    ],
   };
 }
 

@@ -34,8 +34,13 @@ jobs:
       - name: Build packages
         run: pnpm run build
 
+      - name: Append dev SHA to versions
+        run: |
+          SHORT_SHA=$(git rev-parse --short=7 HEAD)
+          pnpm -r exec -- sh -c 'npm pkg set version="$(npm pkg get version | tr -d \")-dev.'"$SHORT_SHA"'"'
+
       - name: Publish packages
-        run: pnpm -r publish --no-git-checks --access public
+        run: pnpm -r publish --no-git-checks --access public --tag dev
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         continue-on-error: true

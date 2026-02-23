@@ -1,6 +1,6 @@
 {
   "name": "@aprovan/hardcopy",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Keep everything close at hand",
   "type": "module",
   "exports": {
