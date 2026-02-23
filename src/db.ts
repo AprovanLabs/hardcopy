@@ -1,5 +1,6 @@
 import BetterSqlite3 from "better-sqlite3";
 import type { Database as BetterSqlite3Database } from "better-sqlite3";
+import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -39,6 +40,7 @@ CREATE INDEX IF NOT EXISTS hc_idx_edges_type ON hc_edges(type);
 
 const GRAPHQLITE_ENV_PATH = "GRAPHQLITE_EXTENSION_PATH";
 const GRAPHQLITE_TEST_QUERY = "SELECT graphqlite_test() AS result";
+let nativeModuleRepairAttempted = false;
 
 export class HardcopyDatabase {
   private db: BetterSqlite3Database;
@@ -49,10 +51,63 @@ export class HardcopyDatabase {
   }
 
   static async open(path: string): Promise<HardcopyDatabase> {
-    const db = new BetterSqlite3(path);
-    const hcdb = new HardcopyDatabase(db);
-    await hcdb.initialize();
-    return hcdb;
+    try {
+      const db = new BetterSqlite3(path);
+      const hcdb = new HardcopyDatabase(db);
+      await hcdb.initialize();
+      return hcdb;
+    } catch (error) {
+      if (!this.shouldAttemptNativeRepair(error)) {
+        throw error;
+      }
+
+      const repaired = this.rebuildBetterSqlite3();
+      if (!repaired) {
+        throw this.wrapNativeLoadError(error);
+      }
+
+      try {
+        const db = new BetterSqlite3(path);
+        const hcdb = new HardcopyDatabase(db);
+        await hcdb.initialize();
+        return hcdb;
+      } catch (retryError) {
+        throw this.wrapNativeLoadError(retryError);
+      }
+    }
+  }
+
+  private static shouldAttemptNativeRepair(error: unknown): boolean {
+    if (nativeModuleRepairAttempted) return false;
+    if (!(error instanceof Error)) return false;
+    const code = (error as { code?: string }).code;
+    if (code !== "ERR_DLOPEN_FAILED") return false;
+    const message = error.message || "";
+    return (
+      message.includes("better_sqlite3.node") &&
+      message.includes("compiled against a different Node.js version")
+    );
+  }
+
+  private static rebuildBetterSqlite3(): boolean {
+    nativeModuleRepairAttempted = true;
+    const packageRoot = join(__dirname, "..");
+    const result = spawnSync("pnpm", ["rebuild", "better-sqlite3"], {
+      cwd: packageRoot,
+      stdio: "ignore",
+      env: process.env,
+    });
+    return result.status === 0;
+  }
+
+  private static wrapNativeLoadError(error: unknown): Error {
+    const details = error instanceof Error ? error.message : String(error);
+    return new Error(
+      `Failed to load better-sqlite3 native module for Node ${process.versions.node}. ` +
+        `Hardcopy attempted an automatic rebuild, but loading still failed. ` +
+        `Run 'cd ~/Documents/JacobSampson/hardcopy && pnpm rebuild better-sqlite3' and retry.\n\n` +
+        details,
+    );
   }
 
   private async initialize(): Promise<void> {

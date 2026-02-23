@@ -382,10 +382,3 @@ export async function serveMcp(root: string): Promise<void> {
   console.error("Hardcopy MCP Server running on stdio");
   await server.connect(transport);
 }
-
-if (import.meta.url === `file://${process.argv[1]}`) {
-  serveMcp(process.cwd()).catch((error) => {
-    console.error("Fatal error in MCP server:", error);
-    process.exit(1);
-  });
-}
