@@ -20,6 +20,8 @@ export interface FetchRequest {
   cursor?: string;
   pageSize?: number;
   versionToken?: string;
+  syncedAt?: number;
+  strategy?: "full" | "incremental";
 }
 
 export interface FetchResult {
@@ -62,6 +64,11 @@ export interface SyncError {
   suggestedActions?: string[];
 }
 
+export interface SyncPolicy {
+  interval: number;
+  strategy: "full" | "incremental";
+}
+
 export interface IndexState {
   cursor?: string;
   total?: number;
@@ -69,6 +76,49 @@ export interface IndexState {
   pageSize: number;
   lastFetch: string;
   ttl: number;
+}
+
+export interface Event {
+  id: string;
+  stream: string;
+  type: string;
+  timestamp: number;
+  attrs: Record<string, unknown>;
+  sourceId?: string;
+  parentId?: string;
+}
+
+export interface Stream {
+  name: string;
+  provider: string;
+  description?: string;
+  schema?: Record<string, unknown>;
+  retention?: {
+    maxAge?: number;
+    maxCount?: number;
+  };
+}
+
+export interface SubscribeOptions {
+  filter?: EventFilter;
+  cursor?: string;
+  batchSize?: number;
+  batchWindow?: number;
+}
+
+export interface EventFilter {
+  types?: string[];
+  since?: number;
+  until?: number;
+  attrs?: Record<string, unknown>;
+  sourceId?: string;
+  parentId?: string;
+}
+
+export interface EventPage {
+  events: Event[];
+  cursor?: string;
+  hasMore: boolean;
 }
 
 export enum ConflictStatus {

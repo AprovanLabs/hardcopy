@@ -4,7 +4,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { Node, Edge } from "./types";
+import type { Node, Edge, Event, EventFilter, EventPage } from "./types";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -36,6 +36,23 @@ CREATE TABLE IF NOT EXISTS hc_edges (
 CREATE INDEX IF NOT EXISTS hc_idx_edges_from ON hc_edges(from_id);
 CREATE INDEX IF NOT EXISTS hc_idx_edges_to ON hc_edges(to_id);
 CREATE INDEX IF NOT EXISTS hc_idx_edges_type ON hc_edges(type);
+
+CREATE TABLE IF NOT EXISTS hc_events (
+  id TEXT PRIMARY KEY,
+  stream TEXT NOT NULL,
+  type TEXT NOT NULL,
+  timestamp INTEGER NOT NULL,
+  attrs TEXT NOT NULL,
+  source_id TEXT,
+  parent_id TEXT,
+  ingested_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS hc_idx_events_stream ON hc_events(stream);
+CREATE INDEX IF NOT EXISTS hc_idx_events_ts ON hc_events(timestamp);
+CREATE INDEX IF NOT EXISTS hc_idx_events_type ON hc_events(type);
+CREATE INDEX IF NOT EXISTS hc_idx_events_source ON hc_events(source_id);
+CREATE INDEX IF NOT EXISTS hc_idx_events_parent ON hc_events(parent_id);
 `;
 
 const GRAPHQLITE_ENV_PATH = "GRAPHQLITE_EXTENSION_PATH";
@@ -644,6 +661,160 @@ export class HardcopyDatabase {
     await this.cypher(
       `MATCH (a {node_id: '${escapedFromId}'})-[r:${relType}]->(b {node_id: '${escapedToId}'}) DELETE r`,
     );
+  }
+
+  async insertEvents(events: Event[]): Promise<void> {
+    if (events.length === 0) return;
+    const now = Date.now();
+    const stmt = this.db.prepare(
+      `INSERT OR IGNORE INTO hc_events (id, stream, type, timestamp, attrs, source_id, parent_id, ingested_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    );
+    const insertMany = this.db.transaction((events: Event[]) => {
+      for (const event of events) {
+        stmt.run(
+          event.id,
+          event.stream,
+          event.type,
+          event.timestamp,
+          JSON.stringify(event.attrs),
+          event.sourceId ?? null,
+          event.parentId ?? null,
+          now,
+        );
+      }
+    });
+    insertMany(events);
+  }
+
+  async queryEvents(filter: EventFilter, limit = 100, cursor?: string): Promise<EventPage> {
+    const conditions: string[] = [];
+    const args: unknown[] = [];
+
+    if (filter.types && filter.types.length > 0) {
+      const placeholders = filter.types.map(() => "?").join(", ");
+      conditions.push(`type IN (${placeholders})`);
+      args.push(...filter.types);
+    }
+    if (filter.since !== undefined) {
+      conditions.push("timestamp >= ?");
+      args.push(filter.since);
+    }
+    if (filter.until !== undefined) {
+      conditions.push("timestamp <= ?");
+      args.push(filter.until);
+    }
+    if (filter.sourceId) {
+      conditions.push("source_id = ?");
+      args.push(filter.sourceId);
+    }
+    if (filter.parentId) {
+      conditions.push("parent_id = ?");
+      args.push(filter.parentId);
+    }
+    if (cursor) {
+      conditions.push("timestamp < ?");
+      args.push(parseInt(cursor, 10));
+    }
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const sql = `SELECT * FROM hc_events ${where} ORDER BY timestamp DESC LIMIT ?`;
+    args.push(limit + 1);
+
+    const rows = this.db.prepare(sql).all(...args) as Record<string, unknown>[];
+    const hasMore = rows.length > limit;
+    const events = rows.slice(0, limit).map((row) => this.rowToEvent(row));
+    const nextCursor = hasMore && events.length > 0
+      ? String(events[events.length - 1]!.timestamp)
+      : undefined;
+
+    return { events, cursor: nextCursor, hasMore };
+  }
+
+  async queryStreamEvents(stream: string, filter: EventFilter, limit = 100, cursor?: string): Promise<EventPage> {
+    const conditions: string[] = ["stream = ?"];
+    const args: unknown[] = [stream];
+
+    if (filter.types && filter.types.length > 0) {
+      const placeholders = filter.types.map(() => "?").join(", ");
+      conditions.push(`type IN (${placeholders})`);
+      args.push(...filter.types);
+    }
+    if (filter.since !== undefined) {
+      conditions.push("timestamp >= ?");
+      args.push(filter.since);
+    }
+    if (filter.until !== undefined) {
+      conditions.push("timestamp <= ?");
+      args.push(filter.until);
+    }
+    if (filter.sourceId) {
+      conditions.push("source_id = ?");
+      args.push(filter.sourceId);
+    }
+    if (filter.parentId) {
+      conditions.push("parent_id = ?");
+      args.push(filter.parentId);
+    }
+    if (cursor) {
+      conditions.push("timestamp < ?");
+      args.push(parseInt(cursor, 10));
+    }
+
+    const where = `WHERE ${conditions.join(" AND ")}`;
+    const sql = `SELECT * FROM hc_events ${where} ORDER BY timestamp DESC LIMIT ?`;
+    args.push(limit + 1);
+
+    const rows = this.db.prepare(sql).all(...args) as Record<string, unknown>[];
+    const hasMore = rows.length > limit;
+    const events = rows.slice(0, limit).map((row) => this.rowToEvent(row));
+    const nextCursor = hasMore && events.length > 0
+      ? String(events[events.length - 1]!.timestamp)
+      : undefined;
+
+    return { events, cursor: nextCursor, hasMore };
+  }
+
+  async pruneEvents(stream: string, retention: { maxAge?: number; maxCount?: number }): Promise<number> {
+    let deleted = 0;
+
+    if (retention.maxAge) {
+      const cutoff = Date.now() - retention.maxAge;
+      const result = this.db.prepare(
+        "DELETE FROM hc_events WHERE stream = ? AND timestamp < ?",
+      ).run(stream, cutoff);
+      deleted += result.changes;
+    }
+
+    if (retention.maxCount) {
+      const countResult = this.db.prepare(
+        "SELECT COUNT(*) as cnt FROM hc_events WHERE stream = ?",
+      ).get(stream) as { cnt: number };
+
+      if (countResult.cnt > retention.maxCount) {
+        const excess = countResult.cnt - retention.maxCount;
+        const result = this.db.prepare(
+          `DELETE FROM hc_events WHERE stream = ? AND id IN (
+            SELECT id FROM hc_events WHERE stream = ? ORDER BY timestamp ASC LIMIT ?
+          )`,
+        ).run(stream, stream, excess);
+        deleted += result.changes;
+      }
+    }
+
+    return deleted;
+  }
+
+  private rowToEvent(row: Record<string, unknown>): Event {
+    return {
+      id: row["id"] as string,
+      stream: row["stream"] as string,
+      type: row["type"] as string,
+      timestamp: row["timestamp"] as number,
+      attrs: JSON.parse(row["attrs"] as string),
+      sourceId: row["source_id"] as string | undefined,
+      parentId: row["parent_id"] as string | undefined,
+    };
   }
 
   async close(): Promise<void> {

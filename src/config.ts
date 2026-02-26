@@ -1,10 +1,32 @@
 import { readFile } from "fs/promises";
 import yaml from "yaml";
+import type { SyncPolicy } from "./types";
 
 export interface LinkConfig {
   edge: string;
   to: string;
   match: string;
+}
+
+export type PipeTransport =
+  | { type: "exec"; command: string; args?: string[]; cwd?: string; env?: Record<string, string> }
+  | { type: "socket"; path: string }
+  | { type: "file"; path: string; follow?: boolean }
+  | { type: "http"; port: number; path?: string }
+  | { type: "tcp"; host: string; port: number };
+
+export type PipeCodec =
+  | { type: "lines" }
+  | { type: "jsonl" }
+  | { type: "sse" }
+  | { type: "chunks"; size?: number };
+
+export interface PipeConfig {
+  transport: PipeTransport;
+  codec: PipeCodec;
+  stream: string;
+  sourceId?: string;
+  retention?: { maxAge?: number; maxCount?: number };
 }
 
 export interface SourceConfig {
@@ -13,6 +35,8 @@ export interface SourceConfig {
   orgs?: string[];
   repositories?: { path: string }[];
   links?: LinkConfig[];
+  sync?: Partial<SyncPolicy>;
+  pipes?: PipeConfig[];
   [key: string]: unknown;
 }
 
@@ -21,6 +45,18 @@ export interface RenderConfig {
   type?: string;
   template?: string;
   args?: Record<string, unknown>;
+}
+
+export interface ViewEventConfig {
+  stream: string;
+  filter?: {
+    since?: string;
+    types?: string[];
+  };
+  join?: {
+    on: string;
+    to: string;
+  };
 }
 
 export interface ViewConfig {
@@ -32,9 +68,11 @@ export interface ViewConfig {
     fallback?: string;
   };
   render: RenderConfig[];
+  events?: ViewEventConfig;
 }
 
 export interface Config {
+  services?: string;
   sources: SourceConfig[];
   views: ViewConfig[];
 }
@@ -57,6 +95,7 @@ function validateConfig(data: unknown): Config {
   const config = data as Record<string, unknown>;
 
   return {
+    services: typeof config["services"] === "string" ? config["services"] : undefined,
     sources: validateSources(config["sources"]),
     views: validateViews(config["views"]),
   };

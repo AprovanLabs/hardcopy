@@ -15,7 +15,7 @@ export async function getViews(this: Hardcopy): Promise<string[]> {
 export async function refreshView(
   this: Hardcopy,
   viewPath: string,
-  options: { clean?: boolean } = {},
+  options: { clean?: boolean; force?: boolean } = {},
 ): Promise<RefreshResult> {
   const config = await this.loadConfig();
   const view = config.views.find((v) => v.path === viewPath);
@@ -23,6 +23,21 @@ export async function refreshView(
 
   const viewDir = join(this.root, view.path);
   await mkdir(viewDir, { recursive: true });
+
+  if (!options.force) {
+    try {
+      const existingIndex = await readFile(join(viewDir, ".index"), "utf-8");
+      const prevState = JSON.parse(existingIndex) as IndexState;
+      const lastFetch = new Date(prevState.lastFetch).getTime();
+      const ttlMs = prevState.ttl * 1000;
+      if (Date.now() - lastFetch < ttlMs) {
+        const existingFiles = await listViewFiles(viewDir);
+        return { rendered: existingFiles.length, orphaned: [], cleaned: false };
+      }
+    } catch {
+      // no existing index, proceed with refresh
+    }
+  }
 
   const db = this.getDatabase();
 
@@ -35,11 +50,13 @@ export async function refreshView(
     Object.keys(params).length ? params : undefined,
   );
 
+  const sourceTtl = config.sources[0]?.sync?.interval ?? 300;
+
   const indexState: IndexState = {
     loaded: nodes.length,
     pageSize: 10,
     lastFetch: new Date().toISOString(),
-    ttl: 300,
+    ttl: sourceTtl,
   };
 
   await writeFile(
@@ -85,13 +102,21 @@ async function renderNodeToFile(
     const fullPath = join(viewDir, filePath);
     await mkdir(join(fullPath, ".."), { recursive: true });
 
+    const renderNode_ = {
+      ...node,
+      attrs: {
+        ...node.attrs,
+        synced_at: node.syncedAt ? new Date(node.syncedAt).toISOString() : undefined,
+      },
+    };
+
     let content: string;
     if (renderConfig.template) {
-      content = renderNode(node, renderConfig.template);
+      content = renderNode(renderNode_, renderConfig.template);
     } else if (renderConfig.type) {
-      content = renderNode({ ...node, type: renderConfig.type });
+      content = renderNode({ ...renderNode_, type: renderConfig.type });
     } else {
-      content = renderNode(node);
+      content = renderNode(renderNode_);
     }
 
     const doc = await crdt.loadOrCreate(node.id);

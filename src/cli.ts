@@ -25,9 +25,26 @@ program
 program
   .command("sync")
   .description("Sync all sources")
-  .action(async () => {
+  .option("--watch", "Start continuous sync on configured intervals")
+  .action(async (options: { watch?: boolean }) => {
     const hc = new Hardcopy({ root: process.cwd() });
     await hc.initialize();
+
+    if (options.watch) {
+      const { SyncScheduler } = await import("./sync-scheduler");
+      const scheduler = new SyncScheduler(hc);
+
+      process.on("SIGINT", async () => {
+        scheduler.stop();
+        await hc.close();
+        process.exit(0);
+      });
+
+      console.log("Starting sync scheduler (Ctrl+C to stop)...");
+      await scheduler.start();
+      return;
+    }
+
     try {
       const stats = await hc.sync();
       console.log(`Synced ${stats.nodes} nodes, ${stats.edges} edges`);
@@ -43,11 +60,12 @@ program
   .command("refresh <pattern>")
   .description("Refresh views matching pattern (supports glob, e.g. docs/*)")
   .option("--clean", "Remove files that no longer match the view", false)
+  .option("--force", "Force refresh even if data is fresh", false)
   .option("--sync-first", "Sync data from remote before refreshing", false)
   .action(
     async (
       pattern: string,
-      options: { clean: boolean; syncFirst: boolean },
+      options: { clean: boolean; force: boolean; syncFirst: boolean },
     ) => {
       const hc = new Hardcopy({ root: process.cwd() });
       await hc.initialize();
@@ -70,7 +88,7 @@ program
         }
 
         for (const view of matchingViews) {
-          const result = await hc.refreshView(view, { clean: options.clean });
+          const result = await hc.refreshView(view, { clean: options.clean, force: options.force });
           console.log(`Refreshed view: ${view} (${result.rendered} files)`);
 
           if (result.orphaned.length > 0) {
@@ -343,6 +361,163 @@ function formatChange(change: {
         (change.newValue.length > 50 ? "..." : "")
       : JSON.stringify(change.newValue);
   return `${old} → ${newVal}`;
+}
+
+const streamCmd = program
+  .command("stream")
+  .description("Manage event streams");
+
+streamCmd
+  .command("list")
+  .description("List available event streams")
+  .action(async () => {
+    const hc = new Hardcopy({ root: process.cwd() });
+    await hc.initialize();
+    try {
+      await hc.loadConfig();
+      const bus = hc.getEventBus();
+      const streams = bus.getStreams();
+      if (streams.length === 0) {
+        console.log("No streams configured");
+        return;
+      }
+      for (const stream of streams) {
+        console.log(`${stream.name} (${stream.provider})`);
+        if (stream.description) console.log(`  ${stream.description}`);
+        if (stream.retention) {
+          const parts: string[] = [];
+          if (stream.retention.maxAge) parts.push(`maxAge: ${stream.retention.maxAge}ms`);
+          if (stream.retention.maxCount) parts.push(`maxCount: ${stream.retention.maxCount}`);
+          console.log(`  retention: ${parts.join(", ")}`);
+        }
+      }
+    } finally {
+      await hc.close();
+    }
+  });
+
+streamCmd
+  .command("watch")
+  .description("Start background ingestion for all configured streams")
+  .action(async () => {
+    const hc = new Hardcopy({ root: process.cwd() });
+    await hc.initialize();
+    await hc.loadConfig();
+    const bus = hc.getEventBus();
+    const providers = hc.getProviders();
+
+    process.on("SIGINT", async () => {
+      await hc.close();
+      process.exit(0);
+    });
+
+    let attached = 0;
+    for (const [, provider] of providers) {
+      if (provider.streams && provider.subscribe) {
+        for (const stream of provider.streams) {
+          await bus.attach(provider, stream.name);
+          console.log(`Attached to stream: ${stream.name}`);
+          attached++;
+        }
+      }
+    }
+
+    if (attached === 0) {
+      console.log("No streamable providers found");
+      await hc.close();
+      return;
+    }
+
+    console.log(`Watching ${attached} streams (Ctrl+C to stop)...`);
+  });
+
+streamCmd
+  .command("tail <stream>")
+  .description("Tail a stream (live events)")
+  .option("-n, --count <count>", "Number of historical events to show", "10")
+  .action(async (stream: string, options: { count: string }) => {
+    const hc = new Hardcopy({ root: process.cwd() });
+    await hc.initialize();
+    await hc.loadConfig();
+    const bus = hc.getEventBus();
+
+    const history = await bus.query(stream, {}, parseInt(options.count, 10));
+    for (const event of history.events.reverse()) {
+      printEvent(event);
+    }
+
+    bus.subscribe({}, (events) => {
+      for (const event of events) {
+        if (event.stream === stream) printEvent(event);
+      }
+    });
+
+    const providers = hc.getProviders();
+    for (const [, provider] of providers) {
+      if (provider.streams?.some((s) => s.name === stream) && provider.subscribe) {
+        await bus.attach(provider, stream);
+        break;
+      }
+    }
+
+    process.on("SIGINT", async () => {
+      await hc.close();
+      process.exit(0);
+    });
+
+    console.log(`Tailing ${stream} (Ctrl+C to stop)...`);
+  });
+
+streamCmd
+  .command("query <stream>")
+  .description("Query historical events from a stream")
+  .option("--since <duration>", "Duration like '2h' or ISO timestamp")
+  .option("--type <type>", "Filter by event type")
+  .option("--limit <n>", "Max events to return", "50")
+  .action(async (stream: string, options: { since?: string; type?: string; limit: string }) => {
+    const hc = new Hardcopy({ root: process.cwd() });
+    await hc.initialize();
+    try {
+      await hc.loadConfig();
+      const bus = hc.getEventBus();
+
+      const filter: import("./types").EventFilter = {};
+      if (options.since) {
+        filter.since = parseSince(options.since);
+      }
+      if (options.type) {
+        filter.types = [options.type];
+      }
+
+      const result = await bus.query(stream, filter, parseInt(options.limit, 10));
+      for (const event of result.events) {
+        printEvent(event);
+      }
+      if (result.hasMore) {
+        console.log(`... more events available (use --limit to increase)`);
+      }
+    } finally {
+      await hc.close();
+    }
+  });
+
+function printEvent(event: import("./types").Event): void {
+  const ts = new Date(event.timestamp).toISOString();
+  const attrs = JSON.stringify(event.attrs);
+  console.log(`[${ts}] ${event.stream} ${event.type}: ${attrs}`);
+}
+
+function parseSince(since: string): number {
+  const match = since.match(/^(\d+)(s|m|h|d)$/);
+  if (match) {
+    const value = parseInt(match[1]!, 10);
+    const unit = match[2]!;
+    const multipliers: Record<string, number> = { s: 1000, m: 60000, h: 3600000, d: 86400000 };
+    return Date.now() - value * multipliers[unit]!;
+  }
+  const ts = Date.parse(since);
+  if (!isNaN(ts)) return ts;
+  return Date.now() - 3600000;
 }
 
 program

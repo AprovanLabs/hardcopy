@@ -123,6 +123,28 @@ export function createMcpServer(root: string): Server {
           required: ["nodeId", "resolution"],
         },
       },
+      {
+        name: "streams",
+        description: "List available event streams and their metadata",
+        inputSchema: {
+          type: "object",
+          properties: {},
+        },
+      },
+      {
+        name: "stream_query",
+        description: "Query historical events from a stream",
+        inputSchema: {
+          type: "object",
+          properties: {
+            stream: { type: "string", description: "Stream name to query" },
+            since: { type: "string", description: "Duration like '2h' or ISO timestamp" },
+            types: { type: "array", items: { type: "string" }, description: "Filter by event types" },
+            limit: { type: "number", default: 50, description: "Max events to return" },
+          },
+          required: ["stream"],
+        },
+      },
     ],
   }));
 
@@ -150,6 +172,10 @@ export function createMcpServer(root: string): Server {
           return await handleConflicts(hc);
         case "resolve":
           return await handleResolve(hc, args as unknown as ResolveArgs);
+        case "streams":
+          return await handleStreams(hc);
+        case "stream_query":
+          return await handleStreamQuery(hc, args as unknown as StreamQueryArgs);
         default:
           throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
       }
@@ -187,6 +213,13 @@ interface PushArgs {
 interface ResolveArgs {
   nodeId: string;
   resolution: Record<string, "local" | "remote">;
+}
+
+interface StreamQueryArgs {
+  stream: string;
+  since?: string;
+  types?: string[];
+  limit?: number;
 }
 
 async function handleSync(hc: Hardcopy) {
@@ -365,6 +398,74 @@ async function handleResolve(hc: Hardcopy, args: ResolveArgs) {
       {
         type: "text" as const,
         text: JSON.stringify({ resolved: args.nodeId }, null, 2),
+      },
+    ],
+  };
+}
+
+async function handleStreams(hc: Hardcopy) {
+  const bus = hc.getEventBus();
+  const streams = bus.getStreams();
+  return {
+    content: [
+      {
+        type: "text" as const,
+        text: JSON.stringify(
+          streams.map((s) => ({
+            name: s.name,
+            provider: s.provider,
+            description: s.description,
+            retention: s.retention,
+          })),
+          null,
+          2,
+        ),
+      },
+    ],
+  };
+}
+
+async function handleStreamQuery(hc: Hardcopy, args: StreamQueryArgs) {
+  const bus = hc.getEventBus();
+  const filter: import("./types").EventFilter = {};
+
+  if (args.since) {
+    const match = args.since.match(/^(\d+)(s|m|h|d)$/);
+    if (match) {
+      const value = parseInt(match[1]!, 10);
+      const unit = match[2]!;
+      const multipliers: Record<string, number> = { s: 1000, m: 60000, h: 3600000, d: 86400000 };
+      filter.since = Date.now() - value * multipliers[unit]!;
+    } else {
+      const ts = Date.parse(args.since);
+      if (!isNaN(ts)) filter.since = ts;
+    }
+  }
+
+  if (args.types) {
+    filter.types = args.types;
+  }
+
+  const result = await bus.query(args.stream, filter, args.limit ?? 50);
+  return {
+    content: [
+      {
+        type: "text" as const,
+        text: JSON.stringify(
+          {
+            events: result.events.map((e) => ({
+              id: e.id,
+              type: e.type,
+              timestamp: new Date(e.timestamp).toISOString(),
+              attrs: e.attrs,
+              sourceId: e.sourceId,
+            })),
+            hasMore: result.hasMore,
+            cursor: result.cursor,
+          },
+          null,
+          2,
+        ),
       },
     ],
   };

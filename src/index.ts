@@ -10,4 +10,7 @@ export * from "./conflict";
 export * from "./conflict-store";
 export * from "./merge";
 export * from "./llm-merge";
+export * from "./rate-limit";
+export * from "./event-bus";
+export * from "./sync-scheduler";
 export { createMcpServer, serveMcp } from "./mcp-server";
