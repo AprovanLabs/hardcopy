@@ -52,16 +52,20 @@ function parseGeneric(content: string): ParsedFile {
 }
 
 function renderTemplate(template: string, node: Node): string {
+  return renderTemplateContext(template, node as unknown as Record<string, unknown>);
+}
+
+export function renderTemplateContext(template: string, context: Record<string, unknown>): string {
   return template.replace(/\{\{([^}]+)\}\}/g, (_, path: string) => {
-    const value = resolvePath(
-      node as unknown as Record<string, unknown>,
-      path.trim(),
-    );
+    const value = resolvePath(context, path.trim());
+    if (Array.isArray(value) || (value !== null && typeof value === "object")) {
+      return JSON.stringify(value);
+    }
     return value?.toString() ?? "";
   });
 }
 
-function resolvePath(obj: Record<string, unknown>, path: string): unknown {
+export function resolvePath(obj: Record<string, unknown>, path: string): unknown {
   const parts = path.split(".");
   let current: unknown = obj;
   for (const part of parts) {

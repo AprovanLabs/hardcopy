@@ -71,10 +71,41 @@ export interface ViewConfig {
   events?: ViewEventConfig;
 }
 
+export type MatchCondition =
+  | string
+  | number
+  | boolean
+  | { contains: string }
+  | { pattern: string };
+
+export type TransitionCondition =
+  | { added: string }
+  | { removed: string }
+  | { from: unknown; to: unknown };
+
+export interface HookTrigger {
+  type: string;
+  source?: string;
+  created?: boolean;
+  updated?: boolean;
+  match?: Record<string, MatchCondition>;
+  transition?: Record<string, TransitionCondition>;
+}
+
+export interface HookConfig {
+  name: string;
+  on: HookTrigger;
+  run: string;
+  cwd?: string;
+  env?: Record<string, string>;
+  background?: boolean;
+}
+
 export interface Config {
   services?: string;
   sources: SourceConfig[];
   views: ViewConfig[];
+  hooks?: HookConfig[];
 }
 
 export async function loadConfig(path: string): Promise<Config> {
@@ -98,6 +129,7 @@ function validateConfig(data: unknown): Config {
     services: typeof config["services"] === "string" ? config["services"] : undefined,
     sources: validateSources(config["sources"]),
     views: validateViews(config["views"]),
+    hooks: validateHooks(config["hooks"]),
   };
 }
 
@@ -139,5 +171,19 @@ function validateViews(data: unknown): ViewConfig[] {
       throw new Error(`View ${i} must have render configs`);
     }
     return view as unknown as ViewConfig;
+  });
+}
+
+function validateHooks(data: unknown): HookConfig[] | undefined {
+  if (!Array.isArray(data)) return undefined;
+  return data.map((h, i) => {
+    if (!h || typeof h !== "object") throw new Error(`Hook ${i} must be an object`);
+    const hook = h as Record<string, unknown>;
+    if (typeof hook["name"] !== "string") throw new Error(`Hook ${i} must have a name`);
+    if (!hook["on"] || typeof hook["on"] !== "object") throw new Error(`Hook ${i} must have an 'on' trigger`);
+    if (typeof hook["run"] !== "string") throw new Error(`Hook ${i} must have a run command`);
+    const on = hook["on"] as Record<string, unknown>;
+    if (typeof on["type"] !== "string") throw new Error(`Hook ${i}.on must have a type`);
+    return hook as unknown as HookConfig;
   });
 }
