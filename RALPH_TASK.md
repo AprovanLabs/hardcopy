@@ -4,6 +4,8 @@ task: Implement What's Next - Unified Event System
 
 # Task: Implement Unified Event System
 
+Create new knowledge base docs as you deem fit, in 'docs', while iterating.
+
 [whats-next.md](./docs/specs/whats-next.md) defines a system where "everything is a stream" - unifying Stitchery (dynamic API integration), Hardcopy (entity graph), and Apprentice (events/assets with versioning) into a cohesive event-driven architecture.
 
 Keep iterating, updating this RALPH_TASK.md document as you discover new ideas. Continually refactor as-needed.

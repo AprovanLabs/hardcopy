@@ -1,6 +1,7 @@
 import type { Database } from "../db";
 import type { EntityGraph } from "../graph/types";
 import type { EventBus, Envelope } from "../events/types";
+import type { ServiceRegistry as IServiceRegistry } from "../services/types";
 import type {
   SkillDefinition,
   SkillSummary,
@@ -12,11 +13,18 @@ import { matchEvent } from "./triggers";
 
 const SKILL_TYPE = "skill.Definition";
 
+export interface DependencyResolution {
+  resolved: boolean;
+  missing: string[];
+  available: string[];
+}
+
 export interface SkillRegistryOptions {
   db: Database;
   graph?: EntityGraph;
   eventBus?: EventBus;
   executor?: SkillExecutor;
+  serviceRegistry?: IServiceRegistry;
 }
 
 export type SkillExecutor = (
