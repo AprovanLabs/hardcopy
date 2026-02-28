@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { EventBus, Envelope, Subscription } from "../events/types";
 import type { EntityGraph } from "../graph/types";
 import type { SkillRegistry } from "../skills/registry";
-import type { SkillDefinition, SkillExecutionContext } from "../skills/types";
+import type { SkillDefinition, SkillContext, SkillExecutionContext } from "../skills/types";
 import type {
   Session,
   SessionConfig,
@@ -34,7 +34,7 @@ export class LLMOrchestrator implements Orchestrator {
   private eventHandlers: Array<(event: Envelope) => void> = [];
   private subscription: Subscription | null = null;
   private running = 0;
-  private queue: Array<{ skill: SkillDefinition; context: SkillExecutionContext }> = [];
+  private queue: Array<{ skill: SkillDefinition; context: SkillContext }> = [];
 
   constructor(config: OrchestratorConfig) {
     this.config = config;
@@ -109,7 +109,7 @@ export class LLMOrchestrator implements Orchestrator {
 
     for (const route of routes) {
       const model = this.router.selectModel(route.skill);
-      const executionContext: SkillExecutionContext = {
+      const executionContext: SkillContext = {
         event: route.context.event,
         entities: route.context.entities,
         services: route.context.services,
@@ -129,7 +129,7 @@ export class LLMOrchestrator implements Orchestrator {
 
   private async executeSkill(
     skill: SkillDefinition,
-    context: SkillExecutionContext,
+    context: SkillContext,
     model: ModelConfig
   ): Promise<void> {
     this.running++;
@@ -154,7 +154,12 @@ export class LLMOrchestrator implements Orchestrator {
 
       while (retries <= maxRetries) {
         try {
-          const result = await this.config.skillRegistry.execute(skill.id, context);
+          const result = await this.config.skillRegistry.execute(skill.id, {
+          event: context.event,
+          entities: context.entities ?? [],
+          services: context.services ?? [],
+          params: context.params,
+        });
           await this.sessionManager.setResult(session.id, result);
           await this.notifyCompletion(session);
           break;
@@ -181,7 +186,7 @@ export class LLMOrchestrator implements Orchestrator {
     }
 
     const model = this.router.selectModel(skill);
-    const context: SkillExecutionContext = {
+    const context: SkillContext = {
       event: config.context.event,
       entities: config.context.entities,
       services: config.context.services,
@@ -195,7 +200,12 @@ export class LLMOrchestrator implements Orchestrator {
 
     while (retries <= maxRetries) {
       try {
-        const result = await this.config.skillRegistry.execute(skill.id, context);
+        const result = await this.config.skillRegistry.execute(skill.id, {
+          event: context.event,
+          entities: context.entities ?? [],
+          services: context.services ?? [],
+          params: context.params,
+        });
         await this.sessionManager.setResult(sessionId, result);
         const session = await this.sessionManager.get(sessionId);
         if (session) {

@@ -70,16 +70,15 @@ export class EventRouter {
 
   private async getRelatedEntities(event: Envelope): Promise<Entity[]> {
     const entities: Entity[] = [];
+    const entityGraph = this.config.entityGraph;
+    if (!entityGraph) return entities;
 
     if (event.subject) {
       try {
-        const subjectEntity = await this.config.entityGraph.get(event.subject);
+        const subjectEntity = await entityGraph.get(event.subject);
         if (subjectEntity) {
           entities.push(subjectEntity);
-          const related = await this.config.entityGraph.traverse(
-            event.subject,
-            1
-          );
+          const related = await entityGraph.traverse(event.subject, 1);
           for (const entity of related) {
             if (entity.uri !== event.subject) {
               entities.push(entity);
@@ -92,7 +91,7 @@ export class EventRouter {
     const data = event.data as Record<string, unknown> | undefined;
     if (data?.uri && typeof data.uri === "string") {
       try {
-        const entity = await this.config.entityGraph.get(data.uri);
+        const entity = await entityGraph.get(data.uri);
         if (entity && !entities.some((e) => e.uri === entity.uri)) {
           entities.push(entity);
         }

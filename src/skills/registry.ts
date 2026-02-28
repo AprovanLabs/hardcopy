@@ -6,6 +6,7 @@ import type {
   SkillDefinition,
   SkillSummary,
   SkillContext,
+  SkillExecutionContext,
   SkillResult,
   SkillRegistry as ISkillRegistry,
 } from "./types";
@@ -164,7 +165,7 @@ export class SkillRegistry implements ISkillRegistry {
     );
   }
 
-  async execute(skillId: string, context: SkillContext): Promise<SkillResult> {
+  async execute(skillId: string, context: SkillContext | SkillExecutionContext): Promise<SkillResult> {
     const skill = this.skills.get(skillId);
     if (!skill) {
       return {
@@ -197,6 +198,13 @@ export class SkillRegistry implements ISkillRegistry {
       };
     }
 
+    const normalizedContext: SkillContext = {
+      event: context.event,
+      entities: context.entities ?? [],
+      services: context.services ?? [],
+      params: context.params,
+    };
+
     const startedAt = new Date().toISOString();
 
     if (this.eventBus) {
@@ -206,13 +214,13 @@ export class SkillRegistry implements ISkillRegistry {
         type: "skill.execution.started",
         source: "skill-registry",
         subject: skill.uri,
-        data: { skillId, context },
+        data: { skillId, context: normalizedContext },
         metadata: {},
       });
     }
 
     try {
-      const result = await this.executor(skill, context);
+      const result = await this.executor(skill, normalizedContext);
 
       if (this.eventBus) {
         await this.eventBus.publish({

@@ -87,14 +87,9 @@ export interface SkillContext {
 
 export interface SkillExecutionContext {
   event?: unknown;
-  parentSessionId?: string;
   entities?: unknown[];
   services?: string[];
   params?: Record<string, unknown>;
-}
-
-export interface SkillExecutionContext {
-  event?: unknown;
   parentSessionId?: string;
 }
 

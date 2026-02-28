@@ -32,7 +32,7 @@ Be generic in your implementation. Think think thoroughly through the abstractio
 - [x] Service Registry extended with versioning, schemas, and streaming
 - [x] Entity Graph supports URI-based linking and dynamic schemas
 - [x] Skills can be triggered by events
-- [ ] LLM Orchestrator routes events to skills and monitors execution
+- [x] LLM Orchestrator routes events to skills and monitors execution
 
 ---
 
@@ -158,26 +158,26 @@ Be generic in your implementation. Think think thoroughly through the abstractio
 **Goal:** The "dumb" orchestrator that routes events to skills and monitors execution.
 
 ### 5.1 Event → Skill Routing
-- [ ] Match incoming events to skill triggers
-- [ ] Build context from entity graph (related entities, services)
-- [ ] Select appropriate model based on skill preference
+- [x] Match incoming events to skill triggers
+- [x] Build context from entity graph (related entities, services)
+- [x] Select appropriate model based on skill preference
 
 ### 5.2 Session Management
-- [ ] Define `Session` type (id, skillId, status, events, result)
-- [ ] Define `SessionConfig` type (skillId, model, context, parentSessionId)
-- [ ] Implement session lifecycle (running → complete/failed/cancelled)
-- [ ] Support nested sessions for agent-to-agent calls
+- [x] Define `Session` type (id, skillId, status, events, result)
+- [x] Define `SessionConfig` type (skillId, model, context, parentSessionId)
+- [x] Implement session lifecycle (running → complete/failed/cancelled)
+- [x] Support nested sessions for agent-to-agent calls
 
 ### 5.3 Execution Monitoring
-- [ ] Stream all LLM chunks as events (`llm.{session}.chunk`)
-- [ ] Emit tool call events (`llm.{session}.tool_call`)
-- [ ] Track progress events (`llm.{session}.progress`)
-- [ ] Implement error handling and retry logic
+- [x] Stream all LLM chunks as events (`llm.{session}.chunk`)
+- [x] Emit tool call events (`llm.{session}.tool_call`)
+- [x] Track progress events (`llm.{session}.progress`)
+- [x] Implement error handling and retry logic
 
 ### 5.4 External Updates
-- [ ] Send periodic progress updates to origin systems (GitHub, Jira)
-- [ ] Emit completion notifications
-- [ ] Publish artifacts from LLM sessions
+- [x] Send periodic progress updates to origin systems (GitHub, Jira)
+- [x] Emit completion notifications
+- [x] Publish artifacts from LLM sessions
 
 ---
 

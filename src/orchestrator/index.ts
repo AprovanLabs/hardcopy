@@ -11,12 +11,14 @@ export type {
   RouteResult,
   ExternalNotifier,
 } from "./types";
+
 export { SessionManager } from "./session";
 export { EventRouter, type RouterConfig } from "./router";
 export { LLMOrchestrator, createOrchestrator, type OrchestratorConfig } from "./orchestrator";
 export {
   GitHubNotifier,
-  WebhookNotifier,
+  JiraNotifier,
   CompositeNotifier,
   type GitHubNotifierConfig,
-} from "./notifier";
+  type JiraNotifierConfig,
+} from "./notifiers";
