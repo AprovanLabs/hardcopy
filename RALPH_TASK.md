@@ -95,31 +95,31 @@ Be generic in your implementation. Think think thoroughly through the abstractio
 **Goal:** Extend Hardcopy with URI-based linking and dynamic schemas.
 
 ### 3.1 URI Resolver
-- [ ] Define URI convention: `scheme:path[#fragment][@version]`
-- [ ] Parse URIs into provider/path/fragment/version components
-- [ ] Resolve version references to concrete content
-- [ ] Implement cross-provider URI validation
+- [x] Define URI convention: `scheme:path[#fragment][@version]`
+- [x] Parse URIs into provider/path/fragment/version components
+- [x] Resolve version references to concrete content
+- [x] Implement cross-provider URI validation
 
 ### 3.2 Link Extraction
-- [ ] Define `LinkExtractor` interface (patterns, extract)
-- [ ] Implement GitHub link extractor (issue URLs, `#123` references)
-- [ ] Implement Jira link extractor
-- [ ] Make extractors pluggable per content type
-- [ ] Auto-create links on entity upsert
-- [ ] Maintain bidirectional links
+- [x] Define `LinkExtractor` interface (patterns, extract)
+- [x] Implement GitHub link extractor (issue URLs, `#123` references)
+- [x] Implement Jira link extractor
+- [x] Make extractors pluggable per content type
+- [x] Auto-create links on entity upsert
+- [x] Maintain bidirectional links
 
 ### 3.3 Dynamic Views
-- [ ] Define `ViewDefinition` type (name, query, path, format, template, ttl)
-- [ ] Implement Cypher-based view definitions
-- [ ] Implement file system materialization
-- [ ] Add incremental refresh based on TTL
+- [x] Define `ViewDefinition` type (name, query, path, format, template, ttl)
+- [x] Implement Cypher-based view definitions
+- [x] Implement file system materialization
+- [x] Add incremental refresh based on TTL
 
 ### 3.4 Entity API
-- [ ] Implement `upsert(entity)` and `upsertBatch(entities)`
-- [ ] Implement `get(uri, version?)` with version resolution
-- [ ] Implement `link/unlink` operations
-- [ ] Implement `query(cypher)` and `traverse(uri, depth)`
-- [ ] Add `inferSchema(type)` for dynamic schema inference
+- [x] Implement `upsert(entity)` and `upsertBatch(entities)`
+- [x] Implement `get(uri, version?)` with version resolution
+- [x] Implement `link/unlink` operations
+- [x] Implement `query(cypher)` and `traverse(uri, depth)`
+- [x] Add `inferSchema(type)` for dynamic schema inference
 
 ---
 

@@ -1,39 +1,33 @@
-import type { Database } from "../db";
-import type { Entity, EntityGraph, ExtractedLink } from "./types";
-import { parseUri, buildUri, stripVersion } from "./uri";
-import { LinkExtractorRegistry, createDefaultExtractorRegistry } from "./extractors";
+import type { HardcopyDatabase } from "../db";
+import type { Entity, EntityLink, EntityGraph as IEntityGraph } from "./types";
+import { parseUri, normalizeUri } from "./uri";
+import { extractLinks } from "./links";
 
-export interface EntityGraphOptions {
-  autoExtractLinks?: boolean;
-  linkExtractors?: LinkExtractorRegistry;
-}
-
-export class EntityGraphImpl implements EntityGraph {
-  private db: Database;
-  private extractors: LinkExtractorRegistry;
+export class EntityGraph implements IEntityGraph {
+  private db: HardcopyDatabase;
   private autoExtractLinks: boolean;
 
-  constructor(db: Database, options: EntityGraphOptions = {}) {
+  constructor(db: HardcopyDatabase, options: { autoExtractLinks?: boolean } = {}) {
     this.db = db;
-    this.extractors = options.linkExtractors ?? createDefaultExtractorRegistry();
     this.autoExtractLinks = options.autoExtractLinks ?? true;
   }
 
   async upsert(entity: Entity): Promise<void> {
-    const nodeId = this.uriToNodeId(entity.uri);
-    const node = {
+    const nodeId = normalizeUri(entity.uri);
+    const parsed = parseUri(entity.uri);
+
+    await this.db.upsertNode({
       id: nodeId,
       type: entity.type,
       attrs: {
         ...entity.attrs,
-        _uri: entity.uri,
-        _version: entity.version,
+        __uri: entity.uri,
+        __scheme: parsed?.scheme,
+        __version: entity.version,
       },
-      syncedAt: entity.syncedAt ? new Date(entity.syncedAt).getTime() : undefined,
+      syncedAt: entity.syncedAt ? Date.parse(entity.syncedAt) : Date.now(),
       versionToken: entity.version,
-    };
-
-    await this.db.upsertNode(node);
+    });
 
     if (entity.links) {
       for (const link of entity.links) {
@@ -42,65 +36,50 @@ export class EntityGraphImpl implements EntityGraph {
     }
 
     if (this.autoExtractLinks) {
-      await this.extractAndCreateLinks(entity);
+      const textContent = this.extractTextContent(entity.attrs);
+      if (textContent) {
+        const extracted = extractLinks(textContent, {
+          sourceUri: entity.uri,
+          sourceType: entity.type,
+        });
+        for (const link of extracted) {
+          await this.link(entity.uri, link.targetUri, link.linkType);
+        }
+      }
     }
   }
 
   async upsertBatch(entities: Entity[]): Promise<void> {
-    const nodes = entities.map((entity) => ({
-      id: this.uriToNodeId(entity.uri),
-      type: entity.type,
-      attrs: {
-        ...entity.attrs,
-        _uri: entity.uri,
-        _version: entity.version,
-      },
-      syncedAt: entity.syncedAt ? new Date(entity.syncedAt).getTime() : undefined,
-      versionToken: entity.version,
-    }));
-
-    await this.db.upsertNodes(nodes);
-
     for (const entity of entities) {
-      if (entity.links) {
-        for (const link of entity.links) {
-          await this.link(entity.uri, link.targetUri, link.type, link.attrs);
-        }
-      }
-
-      if (this.autoExtractLinks) {
-        await this.extractAndCreateLinks(entity);
-      }
+      await this.upsert(entity);
     }
   }
 
   async get(uri: string, version?: string): Promise<Entity | null> {
-    const targetUri = version ? this.resolveVersion(uri, version) : uri;
-    const nodeId = this.uriToNodeId(targetUri);
+    const nodeId = normalizeUri(uri);
     const node = await this.db.getNode(nodeId);
     if (!node) return null;
 
+    const { __uri, __scheme, __version, ...attrs } = node.attrs as Record<string, unknown>;
     const edges = await this.db.getEdges(nodeId);
-    const links = edges.map((e) => ({
+    const links: EntityLink[] = edges.map((e) => ({
       type: e.type,
-      targetUri: this.nodeIdToUri(e.toId),
+      targetUri: e.toId,
       attrs: e.attrs,
     }));
 
-    const { _uri, _version, ...attrs } = node.attrs as Record<string, unknown>;
-
     return {
-      uri: (_uri as string) ?? uri,
+      uri: (__uri as string) ?? uri,
       type: node.type,
       attrs,
-      version: (_version as string) ?? node.versionToken,
+      version: (__version as string) ?? node.versionToken,
       syncedAt: node.syncedAt ? new Date(node.syncedAt).toISOString() : undefined,
-      links,
+      links: links.length > 0 ? links : undefined,
     };
   }
 
   async delete(uri: string): Promise<void> {
-    const nodeId = this.uriToNodeId(uri);
+    const nodeId = normalizeUri(uri);
     await this.db.deleteNode(nodeId);
   }
 
@@ -110,60 +89,69 @@ export class EntityGraphImpl implements EntityGraph {
     type: string,
     attrs?: Record<string, unknown>
   ): Promise<void> {
-    const fromId = this.uriToNodeId(fromUri);
-    const toId = this.uriToNodeId(toUri);
-
-    const toNode = await this.db.getNode(toId);
-    if (!toNode) {
-      await this.db.upsertNode({
-        id: toId,
-        type: "entity.placeholder",
-        attrs: { _uri: toUri },
-      });
-    }
-
+    const fromId = normalizeUri(fromUri);
+    const toId = normalizeUri(toUri);
     await this.db.upsertEdge({
       type,
       fromId,
       toId,
       attrs,
     });
-
-    await this.db.upsertEdge({
-      type: `${type}_reverse`,
-      fromId: toId,
-      toId: fromId,
-      attrs,
-    });
   }
 
   async unlink(fromUri: string, toUri: string, type: string): Promise<void> {
-    const fromId = this.uriToNodeId(fromUri);
-    const toId = this.uriToNodeId(toUri);
+    const fromId = normalizeUri(fromUri);
+    const toId = normalizeUri(toUri);
     await this.db.deleteEdge(fromId, toId, type);
-    await this.db.deleteEdge(toId, fromId, `${type}_reverse`);
   }
 
   async query(cypher: string, params?: Record<string, unknown>): Promise<Entity[]> {
     const nodes = await this.db.queryViewNodes(cypher, params);
     return nodes.map((node) => {
-      const { _uri, _version, ...attrs } = node.attrs as Record<string, unknown>;
+      const { __uri, __scheme, __version, ...attrs } = node.attrs as Record<string, unknown>;
       return {
-        uri: (_uri as string) ?? this.nodeIdToUri(node.id),
+        uri: (__uri as string) ?? node.id,
         type: node.type,
         attrs,
-        version: (_version as string) ?? node.versionToken,
+        version: (__version as string) ?? node.versionToken,
         syncedAt: node.syncedAt ? new Date(node.syncedAt).toISOString() : undefined,
       };
     });
   }
 
-  async traverse(uri: string, depth = 1): Promise<Entity[]> {
-    const nodeId = this.uriToNodeId(uri);
+  async traverse(uri: string, depth: number = 2): Promise<Entity[]> {
+    const nodeId = normalizeUri(uri);
     const visited = new Set<string>();
     const result: Entity[] = [];
+    const queue: { id: string; level: number }[] = [{ id: nodeId, level: 0 }];
 
-    await this.traverseRecursive(nodeId, depth, visited, result);
+    while (queue.length > 0) {
+      const { id, level } = queue.shift()!;
+      if (visited.has(id) || level > depth) continue;
+      visited.add(id);
+
+      const entity = await this.get(id);
+      if (entity) {
+        result.push(entity);
+
+        if (level < depth) {
+          const outEdges = await this.db.getEdges(id);
+          const inEdges = await this.db.getEdges(undefined, id);
+          
+          for (const edge of outEdges) {
+            if (!visited.has(edge.toId)) {
+              queue.push({ id: edge.toId, level: level + 1 });
+            }
+          }
+          for (const edge of inEdges) {
+            if (!visited.has(edge.fromId)) {
+              queue.push({ id: edge.fromId, level: level + 1 });
+            }
+          }
+        }
+      }
+    }
+
     return result;
   }
 
@@ -174,137 +162,53 @@ export class EntityGraphImpl implements EntityGraph {
     }
 
     const properties: Record<string, unknown> = {};
-    const required = new Set<string>();
-    let firstNode = true;
+    const seen = new Map<string, Set<string>>();
 
     for (const node of nodes) {
-      const attrs = node.attrs as Record<string, unknown>;
-      for (const [key, value] of Object.entries(attrs)) {
-        if (key.startsWith("_")) continue;
+      for (const [key, value] of Object.entries(node.attrs)) {
+        if (key.startsWith("__")) continue;
 
-        const inferredType = this.inferPropertyType(value);
-        if (!properties[key]) {
-          properties[key] = inferredType;
-          if (firstNode) required.add(key);
-        } else {
-          const existing = properties[key] as Record<string, unknown>;
-          if (existing.type !== inferredType.type) {
-            properties[key] = { type: ["string", inferredType.type, existing.type] };
-          }
+        if (!seen.has(key)) {
+          seen.set(key, new Set());
         }
-
-        if (!required.has(key) && value !== undefined) {
-          required.delete(key);
-        }
+        seen.get(key)!.add(this.inferType(value));
       }
+    }
 
-      if (firstNode) {
-        for (const key of required) {
-          if (!(key in attrs)) {
-            required.delete(key);
-          }
-        }
-      }
-      firstNode = false;
+    for (const [key, types] of seen) {
+      const typeArray = Array.from(types);
+      properties[key] = {
+        type: typeArray.length === 1 ? typeArray[0] : typeArray,
+      };
     }
 
     return {
       type: "object",
       properties,
-      required: Array.from(required),
+      title: type,
     };
   }
 
-  private async traverseRecursive(
-    nodeId: string,
-    depth: number,
-    visited: Set<string>,
-    result: Entity[]
-  ): Promise<void> {
-    if (depth < 0 || visited.has(nodeId)) return;
-    visited.add(nodeId);
+  private extractTextContent(attrs: Record<string, unknown>): string {
+    const textFields = ["body", "content", "description", "text", "message", "title"];
+    const parts: string[] = [];
 
-    const node = await this.db.getNode(nodeId);
-    if (!node) return;
-
-    const { _uri, _version, ...attrs } = node.attrs as Record<string, unknown>;
-    result.push({
-      uri: (_uri as string) ?? this.nodeIdToUri(nodeId),
-      type: node.type,
-      attrs,
-      version: (_version as string) ?? node.versionToken,
-      syncedAt: node.syncedAt ? new Date(node.syncedAt).toISOString() : undefined,
-    });
-
-    if (depth > 0) {
-      const edges = await this.db.getEdges(nodeId);
-      for (const edge of edges) {
-        if (!edge.type.endsWith("_reverse")) {
-          await this.traverseRecursive(edge.toId, depth - 1, visited, result);
-        }
+    for (const field of textFields) {
+      const value = attrs[field];
+      if (typeof value === "string") {
+        parts.push(value);
       }
     }
+
+    return parts.join("\n");
   }
 
-  private async extractAndCreateLinks(entity: Entity): Promise<void> {
-    const content = this.extractContent(entity);
-    if (!content) return;
-
-    const links = this.extractors.extractAll(content, {
-      sourceUri: entity.uri,
-      sourceType: entity.type,
-    });
-
-    for (const link of links) {
-      await this.link(entity.uri, link.targetUri, link.linkType);
-    }
-  }
-
-  private extractContent(entity: Entity): string | null {
-    const attrs = entity.attrs;
-    if (typeof attrs.body === "string") return attrs.body;
-    if (typeof attrs.content === "string") return attrs.content;
-    if (typeof attrs.description === "string") return attrs.description;
-    if (typeof attrs.text === "string") return attrs.text;
-    return null;
-  }
-
-  private uriToNodeId(uri: string): string {
-    return uri.replace(/[@#]/g, "-").replace(/[^a-zA-Z0-9_.-]/g, "_");
-  }
-
-  private nodeIdToUri(nodeId: string): string {
-    return `entity:${nodeId}`;
-  }
-
-  private resolveVersion(uri: string, version: string): string {
-    const parsed = parseUri(uri);
-    if (!parsed) return uri;
-    return buildUri(parsed.scheme, parsed.path, parsed.fragment, version);
-  }
-
-  private inferPropertyType(value: unknown): Record<string, unknown> {
-    if (value === null || value === undefined) {
-      return { type: "null" };
-    }
-    if (typeof value === "string") {
-      if (/^\d{4}-\d{2}-\d{2}/.test(value)) {
-        return { type: "string", format: "date-time" };
-      }
-      if (/^https?:\/\//.test(value)) {
-        return { type: "string", format: "uri" };
-      }
-      return { type: "string" };
-    }
+  private inferType(value: unknown): string {
+    if (value === null) return "null";
+    if (Array.isArray(value)) return "array";
     if (typeof value === "number") {
-      return Number.isInteger(value) ? { type: "integer" } : { type: "number" };
+      return Number.isInteger(value) ? "integer" : "number";
     }
-    if (typeof value === "boolean") {
-      return { type: "boolean" };
-    }
-    if (Array.isArray(value)) {
-      return { type: "array" };
-    }
-    return { type: "object" };
+    return typeof value;
   }
 }
