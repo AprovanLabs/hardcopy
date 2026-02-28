@@ -200,12 +200,84 @@ export class SSEAdapter implements StreamingAdapter {
 }
 
 export interface StreamEventBridgeConfig {
+  namespace: string;
+  procedure: string;
+  eventBus: EventBus;
+  eventType?: string;
+  extractSubject?: (data: unknown) => string | undefined;
+}
+
+export function createStreamEventBridge<T>(
+  stream: AsyncIterable<T>,
+  config: StreamEventBridgeConfig
+) {
+  const { namespace, procedure, eventBus, eventType, extractSubject } = config;
+  const source = `service:${namespace}`;
+  const type = eventType ?? `service.${namespace}.${procedure}`;
+  let stopped = false;
+  let index = 0;
+
+  async function processStream(): Promise<void> {
+    await eventBus.publish(
+      createStreamEnvelope(type, source, "start", {
+        namespace,
+        procedure,
+      })
+    );
+
+    try {
+      for await (const item of stream) {
+        if (stopped) break;
+        const subject = extractSubject?.(item);
+        await eventBus.publish({
+          id: randomUUID(),
+          timestamp: new Date().toISOString(),
+          type: `${type}.data`,
+          source,
+          subject,
+          data: { index: index++, item },
+          metadata: { phase: "data" },
+        });
+      }
+      if (!stopped) {
+        await eventBus.publish(
+          createStreamEnvelope(type, source, "complete", {
+            namespace,
+            procedure,
+            totalItems: index,
+          })
+        );
+      }
+    } catch (err) {
+      if (!stopped) {
+        await eventBus.publish(
+          createStreamEnvelope(type, source, "error", {
+            namespace,
+            procedure,
+            error: err instanceof Error ? err.message : String(err),
+            index,
+          })
+        );
+      }
+      throw err;
+    }
+  }
+
+  return {
+    start: processStream,
+    stop: () => {
+      stopped = true;
+    },
+  };
+}
+
+export interface SimpleBridgeConfig {
   source: string;
   eventBus: EventBus;
   typePrefix?: string;
 }
 
-export function createStreamEventBridge(config: StreamEventBridgeConfig) {
+export function createSimpleStreamBridge(config: SimpleBridgeConfig) {
   const { source, eventBus, typePrefix = "stream" } = config;
 
   return {
