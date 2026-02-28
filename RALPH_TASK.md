@@ -67,26 +67,26 @@ Be generic in your implementation. Think think thoroughly through the abstractio
 **Goal:** Extend Stitchery with versioning, caching, and streaming.
 
 ### 2.1 Service Persistence
-- [ ] Define `ServiceDefinition` type (namespace, version, source, procedures, types)
-- [ ] Store service definitions in entity graph
-- [ ] Implement semantic version tracking
-- [ ] Extract schemas from OpenAPI/MCP definitions
+- [x] Define `ServiceDefinition` type (namespace, version, source, procedures, types)
+- [x] Store service definitions in entity graph
+- [x] Implement semantic version tracking
+- [x] Extract schemas from OpenAPI/MCP definitions
 
 ### 2.2 Caching Layer
-- [ ] Add per-procedure TTL configuration
-- [ ] Implement cache invalidation via events
-- [ ] Add ETag/Last-Modified support for HTTP backends
+- [x] Add per-procedure TTL configuration
+- [x] Implement cache invalidation via events
+- [x] Add ETag/Last-Modified support for HTTP backends
 
 ### 2.3 Streaming Support
-- [ ] Create WebSocket adapter for streaming procedures
-- [ ] Create SSE adapter for streaming procedures
-- [ ] Implement Stream → Event bridge (stream events published to bus)
-- [ ] Mark streaming procedures in service registry
+- [x] Create WebSocket adapter for streaming procedures
+- [x] Create SSE adapter for streaming procedures
+- [x] Implement Stream → Event bridge (stream events published to bus)
+- [x] Mark streaming procedures in service registry
 
 ### 2.4 Auto-Generated Entity Types
-- [ ] Extract input/output types from service schemas
-- [ ] Register entity types in graph automatically on service registration
-- [ ] Create URI patterns from service/procedure combinations
+- [x] Extract input/output types from service schemas
+- [x] Register entity types in graph automatically on service registration
+- [x] Create URI patterns from service/procedure combinations
 
 ---
 
