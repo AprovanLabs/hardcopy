@@ -26,3 +26,9 @@ This is how Ralph maintains continuity across iterations.
 - `adapters.ts`: WebhookAdapter, ScheduleAdapter, ManualAdapter
 
 **Next:** Phase 2 - Service Registry with versioning, schemas, streaming
+
+### 2026-02-28 11:12:04
+**Session 1 ended** - 🔄 Context rotation (token limit reached)
+
+### 2026-02-28 11:12:06
+**Session 2 started** (model: opus-4.5-thinking)
