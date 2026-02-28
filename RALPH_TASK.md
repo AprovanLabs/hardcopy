@@ -28,10 +28,10 @@ Be generic in your implementation. Think think thoroughly through the abstractio
 
 ## Success Criteria
 
-- [ ] Event Bus operational with publish/subscribe/query
-- [ ] Service Registry extended with versioning, schemas, and streaming
-- [ ] Entity Graph supports URI-based linking and dynamic schemas
-- [ ] Skills can be triggered by events
+- [x] Event Bus operational with publish/subscribe/query
+- [x] Service Registry extended with versioning, schemas, and streaming
+- [x] Entity Graph supports URI-based linking and dynamic schemas
+- [x] Skills can be triggered by events
 - [ ] LLM Orchestrator routes events to skills and monitors execution
 
 ---

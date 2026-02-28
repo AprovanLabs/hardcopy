@@ -186,6 +186,17 @@ export class SkillRegistry implements ISkillRegistry {
       };
     }
 
+    const deps = await this.resolveDependencies(skill);
+    if (!deps.resolved) {
+      return {
+        skillId,
+        status: "error",
+        error: `Missing required services: ${deps.missing.join(", ")}`,
+        startedAt: new Date().toISOString(),
+        completedAt: new Date().toISOString(),
+      };
+    }
+
     const startedAt = new Date().toISOString();
 
     if (this.eventBus) {
