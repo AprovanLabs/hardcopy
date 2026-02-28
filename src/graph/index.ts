@@ -27,7 +27,6 @@ export {
   LinkExtractorRegistry,
   extractLinks,
 } from "./links";
-export { EntityGraphImpl as EntityGraph } from "./entity-graph";
-export type { EntityGraphOptions } from "./entity-graph";
+export { EntityGraph } from "./entity-graph";
 export { ViewRenderer, refreshView } from "./views";
 export type { ViewRenderResult, ViewRefreshResult } from "./views";
