@@ -50,6 +50,7 @@ export interface JsonSchema {
   enum?: unknown[];
   description?: string;
   default?: unknown;
+  $ref?: string;
   [key: string]: unknown;
 }
 

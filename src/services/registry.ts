@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import type {
   ServiceDefinition,
   ServiceSummary,
@@ -8,6 +9,8 @@ import type {
   McpSourceConfig,
 } from "./types";
 import type { ServiceStore } from "./store";
+import type { EventBus, Envelope, Subscription } from "../events/types";
+import { createStreamEventBridge } from "./streaming";
 
 type ServiceAdapter = {
   call(procedure: string, args: unknown): Promise<unknown>;
@@ -15,18 +18,81 @@ type ServiceAdapter = {
   close?(): Promise<void>;
 };
 
+type EntityTypeRegistrar = (namespace: string, types: Array<{ name: string; schema: JsonSchema }>) => Promise<void>;
+
 export class ServiceRegistry implements IServiceRegistry {
   private store: ServiceStore;
   private adapters = new Map<string, ServiceAdapter>();
   private localHandlers = new Map<string, (procedure: string, args: unknown) => Promise<unknown>>();
+  private eventBus: EventBus | null = null;
+  private cacheInvalidationSub: Subscription | null = null;
+  private entityTypeRegistrar: EntityTypeRegistrar | null = null;
+  private activeStreamBridges = new Map<string, { stop: () => void }>();
 
   constructor(store: ServiceStore) {
     this.store = store;
   }
 
+  setEventBus(eventBus: EventBus): void {
+    this.eventBus = eventBus;
+    this.setupCacheInvalidation();
+  }
+
+  setEntityTypeRegistrar(registrar: EntityTypeRegistrar): void {
+    this.entityTypeRegistrar = registrar;
+  }
+
+  private setupCacheInvalidation(): void {
+    if (!this.eventBus) return;
+
+    this.cacheInvalidationSub = this.eventBus.subscribe(
+      { types: ["cache.invalidate.*", "service.*.updated"] },
+      async (envelope: Envelope) => {
+        const { namespace, procedure } = (envelope.data as { namespace?: string; procedure?: string }) ?? {};
+        if (namespace) {
+          this.invalidateCache(namespace, procedure);
+        }
+      }
+    );
+  }
+
   async register(service: ServiceDefinition): Promise<void> {
     this.store.upsert(service);
     await this.initializeAdapter(service);
+    await this.registerEntityTypes(service);
+    await this.emitServiceRegistered(service);
+  }
+
+  private async registerEntityTypes(service: ServiceDefinition): Promise<void> {
+    if (!this.entityTypeRegistrar || service.types.length === 0) return;
+
+    const entityTypes = service.types.map((t) => ({
+      name: t.name.includes(".") ? t.name : `${service.namespace}.${t.name}`,
+      schema: t.schema,
+    }));
+
+    await this.entityTypeRegistrar(service.namespace, entityTypes);
+  }
+
+  private async emitServiceRegistered(service: ServiceDefinition): Promise<void> {
+    if (!this.eventBus) return;
+
+    const envelope: Envelope = {
+      id: randomUUID(),
+      timestamp: new Date().toISOString(),
+      type: "service.registered",
+      source: "service-registry",
+      subject: `service:${service.namespace}`,
+      data: {
+        namespace: service.namespace,
+        version: service.version,
+        procedureCount: service.procedures.length,
+        typeCount: service.types.length,
+      },
+      metadata: {},
+    };
+
+    await this.eventBus.publish(envelope);
   }
 
   async unregister(namespace: string): Promise<void> {
@@ -113,6 +179,52 @@ export class ServiceRegistry implements IServiceRegistry {
     }
 
     yield* adapter.stream(procedure, args);
+  }
+
+  streamWithBridge(
+    namespace: string,
+    procedure: string,
+    args: unknown,
+    options?: { eventType?: string; extractSubject?: (data: unknown) => string | undefined }
+  ): { stream: AsyncIterable<unknown>; stop: () => void } {
+    const service = this.store.get(namespace);
+    if (!service) {
+      throw new Error(`Service not found: ${namespace}`);
+    }
+
+    const adapter = this.adapters.get(namespace);
+    if (!adapter?.stream) {
+      throw new Error(`Service ${namespace} does not support streaming`);
+    }
+
+    const rawStream = adapter.stream(procedure, args);
+    const bridgeId = `${namespace}:${procedure}:${randomUUID()}`;
+
+    if (this.eventBus) {
+      const bridge = createStreamEventBridge(rawStream, {
+        namespace,
+        procedure,
+        eventBus: this.eventBus,
+        eventType: options?.eventType,
+        extractSubject: options?.extractSubject,
+      });
+
+      this.activeStreamBridges.set(bridgeId, bridge);
+      bridge.start().finally(() => {
+        this.activeStreamBridges.delete(bridgeId);
+      });
+    }
+
+    return {
+      stream: rawStream,
+      stop: () => {
+        const bridge = this.activeStreamBridges.get(bridgeId);
+        if (bridge) {
+          bridge.stop();
+          this.activeStreamBridges.delete(bridgeId);
+        }
+      },
+    };
   }
 
   async getSchema(namespace: string, typeName: string): Promise<JsonSchema | null> {
@@ -325,6 +437,16 @@ export class ServiceRegistry implements IServiceRegistry {
   }
 
   async close(): Promise<void> {
+    if (this.cacheInvalidationSub) {
+      this.cacheInvalidationSub.unsubscribe();
+      this.cacheInvalidationSub = null;
+    }
+
+    for (const bridge of this.activeStreamBridges.values()) {
+      bridge.stop();
+    }
+    this.activeStreamBridges.clear();
+
     for (const [namespace, adapter] of this.adapters) {
       if (adapter.close) {
         await adapter.close();
