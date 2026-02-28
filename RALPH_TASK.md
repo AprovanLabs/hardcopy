@@ -39,26 +39,26 @@ Be generic in your implementation. Think think thoroughly through the abstractio
 **Goal:** Unify all inputs/outputs through a single event primitive (Envelope).
 
 ### 1.1 Define Core Types
-- [ ] Create `Envelope` type (id, timestamp, type, source, subject, data, metadata)
-- [ ] Create `EventFilter` type (types, sources, subjects, since, metadata)
-- [ ] Create `EventBus` interface (publish, subscribe, stream, query)
+- [x] Create `Envelope` type (id, timestamp, type, source, subject, data, metadata)
+- [x] Create `EventFilter` type (types, sources, subjects, since, metadata)
+- [x] Create `EventBus` interface (publish, subscribe, stream, query)
 
 ### 1.2 SQLite Event Store
-- [ ] Create `events` table with columns matching Envelope schema
-- [ ] Add FTS index on `type`, `source`, `subject`, `data`
-- [ ] Add embedding column for vector search (from Apprentice pattern)
-- [ ] Implement batch insert for high throughput
-- [ ] Add time-based partitioning for efficient queries
+- [x] Create `events` table with columns matching Envelope schema
+- [x] Add FTS index on `type`, `source`, `subject`, `data`
+- [x] Add embedding column for vector search (from Apprentice pattern)
+- [x] Implement batch insert for high throughput
+- [x] Add time-based partitioning for efficient queries
 
 ### 1.3 Event Routing
-- [ ] Implement filter-based subscription matching
-- [ ] Create dead letter queue for failed handlers
-- [ ] Implement at-least-once delivery semantics
+- [x] Implement filter-based subscription matching
+- [x] Create dead letter queue for failed handlers
+- [x] Implement at-least-once delivery semantics
 
 ### 1.4 Ingest Adapters
-- [ ] Webhook receiver (HTTP POST → Envelope)
-- [ ] Schedule adapter (CRON → periodic Envelope)
-- [ ] Manual adapter (CLI/UI → Envelope)
+- [x] Webhook receiver (HTTP POST → Envelope)
+- [x] Schedule adapter (CRON → periodic Envelope)
+- [x] Manual adapter (CLI/UI → Envelope)
 
 ---
 
