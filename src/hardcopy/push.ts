@@ -1,5 +1,5 @@
 import { join } from "path";
-import { readFile, writeFile } from "fs/promises";
+import { readFile, writeFile, stat } from "fs/promises";
 import matter from "gray-matter";
 import { setDocContent } from "../crdt";
 import {
@@ -125,6 +125,8 @@ export async function push(
 
         try {
           await updateLocalFileAfterPush(diffResult.filePath, changes);
+          const fileStat = await stat(diffResult.filePath);
+          await db.setFileSyncedAt(diffResult.nodeId, diffResult.viewRelPath, fileStat.mtimeMs);
         } catch (err) {
           stats.errors.push(
             `Failed to update local file ${diffResult.filePath}: ${err}`,
@@ -243,6 +245,9 @@ export async function resolveConflict(
   const nextContent = matter.stringify(body, attrs);
   await writeFile(conflict.info.filePath, nextContent);
 
+  const fileStat = await stat(conflict.info.filePath);
+  await db.setFileSyncedAt(nodeId, conflict.info.viewRelPath, fileStat.mtimeMs);
+
   const parsedForChanges = { attrs, body };
   const changes = detectChanges(
     parsedForChanges,
@@ -328,6 +333,7 @@ async function saveConflict(
     nodeId: diffResult.nodeId,
     nodeType,
     filePath: diffResult.filePath,
+    viewRelPath: diffResult.viewRelPath,
     detectedAt: Date.now(),
     fields: conflicts,
   });

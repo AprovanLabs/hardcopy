@@ -1,0 +1,159 @@
+sources:
+  - name: github
+    provider: github
+    orgs: [AprovanLabs]
+
+  - name: agents
+    provider: pipe
+    pipes:
+      - transport: { type: exec, command: "node", args: ["agent.js"], cwd: "./agents" }
+        codec: { type: jsonl }
+        stream: pipe.agent-worker.events
+        sourceId: "a2a:worker-1"  # link to the agent's Node in the graph
+
+  - name: dev-shell
+    provider: pipe
+    pipes:
+      - transport: { type: exec, command: "zsh" }
+        codec: { type: lines }
+        stream: pipe.shell.dev
+
+  - name: monitoring
+    provider: pipe
+    pipes:
+      - transport: { type: tcp, host: "datadog-agent.local", port: 8125 }
+        codec: { type: jsonl }
+        stream: pipe.datadog.metrics
+        retention: { maxAge: 604800000 }
+
+  - name: local
+    provider: pipe
+    pipes:
+      # Agent process — structured JSONL events
+      - transport: { type: exec, command: "node", args: ["agent.js"] }
+        codec: { type: jsonl }
+        stream: pipe.agent.events
+        sourceId: "a2a:worker-1"
+        retention: { maxAge: 604800000 }   # 7 days
+
+      # Dev shell capture
+      - transport: { type: file, path: "/tmp/dev-shell.log", follow: true }
+        codec: { type: lines }
+        stream: pipe.shell.dev
+        retention: { maxCount: 50000 }
+
+      # Build output
+      - transport: { type: exec, command: "pnpm", args: ["dev"] }
+        codec: { type: lines }
+        stream: pipe.build.dev
+        retention: { maxAge: 86400000 }    # 1 day
+
+      # Webhook listener
+      - transport: { type: http, port: 9090 }
+        codec: { type: jsonl }
+        stream: pipe.webhook.inbound
+        retention: { maxCount: 10000 }
+
+  - name: shell-log
+    provider: pipe
+    pipes:
+      - transport: { type: file, path: "/tmp/shell-session.log", follow: true }
+        codec: { type: lines }
+        stream: pipe.shell.log
+
+  - name: git
+    provider: git
+    repositories:
+      - path: ../zolvery
+    links:
+      - edge: git.TRACKS
+        to: a2a.Task
+        match: "a2a:{{branch.meta.a2a.task_id}}"
+
+hooks:
+  - name: plan-on-issue
+    on:
+      type: github.Issue
+      source: projects          # optional: restrict to a named source
+      created: true             # fires on node creation
+      match:                    # attribute conditions (all must match)
+        labels:
+          contains: plan
+        repository: AprovanLabs/projects
+
+    run: |
+      echo "$(cat docs/prompts/plan.md)" > "/Users/jsampson/Documents/JacobSampson/patchwork/logs/$(date)-Issue-{{attrs.number}}-{{attrs.title}}.txt"
+    # run: |
+    #   claude --worktree --prompt "$(cat docs/prompts/plan.md)" \
+    #     --context "Issue #{{attrs.number}}: {{attrs.title}}\n\n{{attrs.body}}"
+
+  - name: implement-on-label
+    on:
+      type: github.Issue
+      source: projects
+      updated: true
+      transition:               # field transition conditions
+        labels:
+          added: implement      # "implement" was not in old, is in new
+      match:
+        repository: AprovanLabs/projects
+
+    run: |
+      echo "$(cat docs/prompts/plan.md)" > "/Users/jsampson/Documents/JacobSampson/patchwork/logs/$(date)-Issue-{{attrs.number}}-{{attrs.title}}.txt"
+
+    # run: |
+    #   claude --worktree --prompt "$(cat docs/prompts/implement.md)" \
+    #     --context "Issue #{{attrs.number}}: {{attrs.title}}\n\n{{attrs.body}}" \
+    #     --notify-url "https://api.github.com/repos/{{attrs.repository}}/issues/{{attrs.number}}/comments"
+
+  - name: investigate
+    on:
+      type: github.Issue
+      source: projects
+      updated: true
+      transition:
+        labels:
+          added: investigate
+      match:
+        repository: AprovanLabs/projects
+    run: |
+      echo "" > "/Users/jsampson/Documents/JacobSampson/patchwork/logs/$(date)-gemini.txt"
+
+    # run: |
+    #   gemini --prompt "$(cat docs/prompts/implement.md)"
+
+views:
+  - path: docs/issues
+    description: "Open GitHub issues"
+    query: |
+      MATCH (i:github.Issue)
+      WHERE i.attrs->>'state' = 'open'
+      RETURN i
+    render:
+      - path: "{{attrs.repository}}/issue-{{attrs.number}}.md"
+        type: github.Issue
+  - path: docs/work
+    description: "Open agent tasks"
+    query: |
+      MATCH (t:a2a.Task)
+      WHERE t.attrs->>'status' = 'open'
+      RETURN t
+    render:
+      - path: "{{attrs.repository}}/task-{{attrs.id}}.md"
+        type: a2a.Task
+  - path: docs/alerts
+    description: "Recent alerts correlated with issues"
+    query: |
+      MATCH (i:github.Issue)
+      WHERE i.attrs->>'state' = 'open'
+      RETURN i
+    events:
+      stream: datadog.alerts
+      filter:
+        since: "-24h"
+      join:
+        on: source_id
+        to: i.id
+    render:
+      - path: "{{attrs.number}}-alerts.md"
+        type: github.Issue
