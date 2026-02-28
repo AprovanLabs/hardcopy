@@ -13,7 +13,7 @@ import type { EventBus, Envelope, Subscription } from "../events/types";
 import { createSimpleStreamBridge } from "./streaming";
 
 type ServiceAdapter = {
-  call(procedure: string, args: unknown): Promise<unknown>;
+  call(procedure: string, args: unknown, conditionalHeaders?: Record<string, string>): Promise<unknown>;
   stream?(procedure: string, args: unknown): AsyncIterable<unknown>;
   close?(): Promise<void>;
 };
@@ -134,10 +134,11 @@ export class ServiceRegistry implements IServiceRegistry {
       throw new Error(`Procedure not found: ${namespace}.${procedure}`);
     }
 
-    if (proc.cacheTtl) {
-      const cacheKey = this.buildCacheKey(namespace, procedure, args);
-      const cached = this.store.getCache(cacheKey);
-      if (cached) return cached.value;
+    const cacheKey = this.buildCacheKey(namespace, procedure, args);
+    const cached = proc.cacheTtl ? this.store.getCache(cacheKey) : null;
+
+    if (cached && !this.isExpiringSoon(cached.expiresAt)) {
+      return cached.value;
     }
 
     let adapter = this.adapters.get(namespace);
@@ -150,18 +151,50 @@ export class ServiceRegistry implements IServiceRegistry {
       throw new Error(`No adapter available for service: ${namespace}`);
     }
 
-    const result = await adapter.call(procedure, args);
+    const conditionalHeaders: Record<string, string> = {};
+    if (cached?.etag) {
+      conditionalHeaders["If-None-Match"] = cached.etag;
+    }
+    if (cached?.lastModified) {
+      conditionalHeaders["If-Modified-Since"] = cached.lastModified;
+    }
+
+    const callResult = await adapter.call(procedure, args, conditionalHeaders);
+
+    if (callResult && typeof callResult === "object" && "__notModified" in callResult) {
+      if (cached && proc.cacheTtl) {
+        this.store.setCache({
+          ...cached,
+          expiresAt: Date.now() + proc.cacheTtl * 1000,
+        });
+      }
+      return cached?.value;
+    }
+
+    const hasHttpMeta = callResult && typeof callResult === "object" && "__data" in callResult;
+    const data = hasHttpMeta ? (callResult as { __data: unknown }).__data : callResult;
+    const etag: string | undefined = hasHttpMeta
+      ? (callResult as { __etag?: unknown }).__etag as string | undefined
+      : undefined;
+    const lastModified: string | undefined = hasHttpMeta
+      ? (callResult as { __lastModified?: unknown }).__lastModified as string | undefined
+      : undefined;
 
     if (proc.cacheTtl) {
-      const cacheKey = this.buildCacheKey(namespace, procedure, args);
       this.store.setCache({
         key: cacheKey,
-        value: result,
+        value: data,
         expiresAt: Date.now() + proc.cacheTtl * 1000,
+        etag,
+        lastModified,
       });
     }
 
-    return result;
+    return data;
+  }
+
+  private isExpiringSoon(expiresAt: number): boolean {
+    return expiresAt - Date.now() < 10000;
   }
 
   async *stream(namespace: string, procedure: string, args: unknown): AsyncIterable<unknown> {
@@ -259,11 +292,12 @@ export class ServiceRegistry implements IServiceRegistry {
     procedures: ProcedureDefinition[]
   ): ServiceAdapter {
     return {
-      async call(procedure: string, args: unknown): Promise<unknown> {
+      async call(procedure: string, args: unknown, conditionalHeaders?: Record<string, string>): Promise<unknown> {
         const url = `${config.baseUrl}/${procedure}`;
         const headers: Record<string, string> = {
           "Content-Type": "application/json",
           ...config.headers,
+          ...conditionalHeaders,
         };
 
         if (config.auth) {
@@ -288,11 +322,22 @@ export class ServiceRegistry implements IServiceRegistry {
           body: JSON.stringify(args),
         });
 
+        if (response.status === 304) {
+          return { __notModified: true };
+        }
+
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${await response.text()}`);
         }
 
-        return response.json();
+        const etag = response.headers.get("ETag") ?? undefined;
+        const lastModified = response.headers.get("Last-Modified") ?? undefined;
+        const data = await response.json();
+
+        if (etag || lastModified) {
+          return { __data: data, __etag: etag, __lastModified: lastModified };
+        }
+        return data;
       },
 
       async *stream(procedure: string, args: unknown): AsyncIterable<unknown> {

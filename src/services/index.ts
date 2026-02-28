@@ -26,6 +26,7 @@ export {
   WebSocketAdapter,
   SSEAdapter,
   createStreamEventBridge,
+  createSimpleStreamBridge,
   markStreamingProcedures,
 } from "./streaming";
 export type {
