@@ -3,607 +3,607 @@
 # DO NOT EDIT - regenerated on task file change
 
 source_file: RALPH_TASK.md
-source_mtime: 1772299263
-generated_at: 2026-02-28T17:22:47Z
+source_mtime: 1772299520
+generated_at: 2026-02-28T17:26:51Z
 
 tasks:
-  - id: "line_29"
-    line_number: 29
-    status: pending
+  - id: "line_31"
+    line_number: 31
+    status: completed
     parallel_group: 999999
     description: Event Bus operational with publish/subscribe/query
     indent_level: 0
     raw_marker: -
-  - id: "line_30"
-    line_number: 30
-    status: pending
+  - id: "line_32"
+    line_number: 32
+    status: completed
     parallel_group: 999999
     description: Service Registry extended with versioning, schemas, and streaming
     indent_level: 0
     raw_marker: -
-  - id: "line_31"
-    line_number: 31
-    status: pending
+  - id: "line_33"
+    line_number: 33
+    status: completed
     parallel_group: 999999
     description: Entity Graph supports URI-based linking and dynamic schemas
     indent_level: 0
     raw_marker: -
-  - id: "line_32"
-    line_number: 32
-    status: pending
+  - id: "line_34"
+    line_number: 34
+    status: completed
     parallel_group: 999999
     description: Skills can be triggered by events
     indent_level: 0
     raw_marker: -
-  - id: "line_33"
-    line_number: 33
+  - id: "line_35"
+    line_number: 35
     status: pending
     parallel_group: 999999
     description: LLM Orchestrator routes events to skills and monitors execution
-    indent_level: 0
-    raw_marker: -
-  - id: "line_42"
-    line_number: 42
-    status: completed
-    parallel_group: 999999
-    description: Create `Envelope` type (id, timestamp, type, source, subject, data, metadata)
-    indent_level: 0
-    raw_marker: -
-  - id: "line_43"
-    line_number: 43
-    status: completed
-    parallel_group: 999999
-    description: Create `EventFilter` type (types, sources, subjects, since, metadata)
     indent_level: 0
     raw_marker: -
   - id: "line_44"
     line_number: 44
     status: completed
     parallel_group: 999999
+    description: Create `Envelope` type (id, timestamp, type, source, subject, data, metadata)
+    indent_level: 0
+    raw_marker: -
+  - id: "line_45"
+    line_number: 45
+    status: completed
+    parallel_group: 999999
+    description: Create `EventFilter` type (types, sources, subjects, since, metadata)
+    indent_level: 0
+    raw_marker: -
+  - id: "line_46"
+    line_number: 46
+    status: completed
+    parallel_group: 999999
     description: Create `EventBus` interface (publish, subscribe, stream, query)
-    indent_level: 0
-    raw_marker: -
-  - id: "line_47"
-    line_number: 47
-    status: completed
-    parallel_group: 999999
-    description: Create `events` table with columns matching Envelope schema
-    indent_level: 0
-    raw_marker: -
-  - id: "line_48"
-    line_number: 48
-    status: completed
-    parallel_group: 999999
-    description: Add FTS index on `type`, `source`, `subject`, `data`
     indent_level: 0
     raw_marker: -
   - id: "line_49"
     line_number: 49
     status: completed
     parallel_group: 999999
-    description: Add embedding column for vector search (from Apprentice pattern)
+    description: Create `events` table with columns matching Envelope schema
     indent_level: 0
     raw_marker: -
   - id: "line_50"
     line_number: 50
     status: completed
     parallel_group: 999999
-    description: Implement batch insert for high throughput
+    description: Add FTS index on `type`, `source`, `subject`, `data`
     indent_level: 0
     raw_marker: -
   - id: "line_51"
     line_number: 51
     status: completed
     parallel_group: 999999
+    description: Add embedding column for vector search (from Apprentice pattern)
+    indent_level: 0
+    raw_marker: -
+  - id: "line_52"
+    line_number: 52
+    status: completed
+    parallel_group: 999999
+    description: Implement batch insert for high throughput
+    indent_level: 0
+    raw_marker: -
+  - id: "line_53"
+    line_number: 53
+    status: completed
+    parallel_group: 999999
     description: Add time-based partitioning for efficient queries
-    indent_level: 0
-    raw_marker: -
-  - id: "line_54"
-    line_number: 54
-    status: completed
-    parallel_group: 999999
-    description: Implement filter-based subscription matching
-    indent_level: 0
-    raw_marker: -
-  - id: "line_55"
-    line_number: 55
-    status: completed
-    parallel_group: 999999
-    description: Create dead letter queue for failed handlers
     indent_level: 0
     raw_marker: -
   - id: "line_56"
     line_number: 56
     status: completed
     parallel_group: 999999
+    description: Implement filter-based subscription matching
+    indent_level: 0
+    raw_marker: -
+  - id: "line_57"
+    line_number: 57
+    status: completed
+    parallel_group: 999999
+    description: Create dead letter queue for failed handlers
+    indent_level: 0
+    raw_marker: -
+  - id: "line_58"
+    line_number: 58
+    status: completed
+    parallel_group: 999999
     description: Implement at-least-once delivery semantics
-    indent_level: 0
-    raw_marker: -
-  - id: "line_59"
-    line_number: 59
-    status: completed
-    parallel_group: 999999
-    description: Webhook receiver (HTTP POST → Envelope)
-    indent_level: 0
-    raw_marker: -
-  - id: "line_60"
-    line_number: 60
-    status: completed
-    parallel_group: 999999
-    description: Schedule adapter (CRON → periodic Envelope)
     indent_level: 0
     raw_marker: -
   - id: "line_61"
     line_number: 61
     status: completed
     parallel_group: 999999
+    description: Webhook receiver (HTTP POST → Envelope)
+    indent_level: 0
+    raw_marker: -
+  - id: "line_62"
+    line_number: 62
+    status: completed
+    parallel_group: 999999
+    description: Schedule adapter (CRON → periodic Envelope)
+    indent_level: 0
+    raw_marker: -
+  - id: "line_63"
+    line_number: 63
+    status: completed
+    parallel_group: 999999
     description: Manual adapter (CLI/UI → Envelope)
-    indent_level: 0
-    raw_marker: -
-  - id: "line_70"
-    line_number: 70
-    status: completed
-    parallel_group: 999999
-    description: Define `ServiceDefinition` type (namespace, version, source, procedures, types)
-    indent_level: 0
-    raw_marker: -
-  - id: "line_71"
-    line_number: 71
-    status: completed
-    parallel_group: 999999
-    description: Store service definitions in entity graph
     indent_level: 0
     raw_marker: -
   - id: "line_72"
     line_number: 72
     status: completed
     parallel_group: 999999
-    description: Implement semantic version tracking
+    description: Define `ServiceDefinition` type (namespace, version, source, procedures, types)
     indent_level: 0
     raw_marker: -
   - id: "line_73"
     line_number: 73
     status: completed
     parallel_group: 999999
+    description: Store service definitions in entity graph
+    indent_level: 0
+    raw_marker: -
+  - id: "line_74"
+    line_number: 74
+    status: completed
+    parallel_group: 999999
+    description: Implement semantic version tracking
+    indent_level: 0
+    raw_marker: -
+  - id: "line_75"
+    line_number: 75
+    status: completed
+    parallel_group: 999999
     description: Extract schemas from OpenAPI/MCP definitions
-    indent_level: 0
-    raw_marker: -
-  - id: "line_76"
-    line_number: 76
-    status: completed
-    parallel_group: 999999
-    description: Add per-procedure TTL configuration
-    indent_level: 0
-    raw_marker: -
-  - id: "line_77"
-    line_number: 77
-    status: completed
-    parallel_group: 999999
-    description: Implement cache invalidation via events
     indent_level: 0
     raw_marker: -
   - id: "line_78"
     line_number: 78
     status: completed
     parallel_group: 999999
+    description: Add per-procedure TTL configuration
+    indent_level: 0
+    raw_marker: -
+  - id: "line_79"
+    line_number: 79
+    status: completed
+    parallel_group: 999999
+    description: Implement cache invalidation via events
+    indent_level: 0
+    raw_marker: -
+  - id: "line_80"
+    line_number: 80
+    status: completed
+    parallel_group: 999999
     description: Add ETag/Last-Modified support for HTTP backends
-    indent_level: 0
-    raw_marker: -
-  - id: "line_81"
-    line_number: 81
-    status: completed
-    parallel_group: 999999
-    description: Create WebSocket adapter for streaming procedures
-    indent_level: 0
-    raw_marker: -
-  - id: "line_82"
-    line_number: 82
-    status: completed
-    parallel_group: 999999
-    description: Create SSE adapter for streaming procedures
     indent_level: 0
     raw_marker: -
   - id: "line_83"
     line_number: 83
     status: completed
     parallel_group: 999999
-    description: Implement Stream → Event bridge (stream events published to bus)
+    description: Create WebSocket adapter for streaming procedures
     indent_level: 0
     raw_marker: -
   - id: "line_84"
     line_number: 84
     status: completed
     parallel_group: 999999
+    description: Create SSE adapter for streaming procedures
+    indent_level: 0
+    raw_marker: -
+  - id: "line_85"
+    line_number: 85
+    status: completed
+    parallel_group: 999999
+    description: Implement Stream → Event bridge (stream events published to bus)
+    indent_level: 0
+    raw_marker: -
+  - id: "line_86"
+    line_number: 86
+    status: completed
+    parallel_group: 999999
     description: Mark streaming procedures in service registry
-    indent_level: 0
-    raw_marker: -
-  - id: "line_87"
-    line_number: 87
-    status: completed
-    parallel_group: 999999
-    description: Extract input/output types from service schemas
-    indent_level: 0
-    raw_marker: -
-  - id: "line_88"
-    line_number: 88
-    status: completed
-    parallel_group: 999999
-    description: Register entity types in graph automatically on service registration
     indent_level: 0
     raw_marker: -
   - id: "line_89"
     line_number: 89
     status: completed
     parallel_group: 999999
+    description: Extract input/output types from service schemas
+    indent_level: 0
+    raw_marker: -
+  - id: "line_90"
+    line_number: 90
+    status: completed
+    parallel_group: 999999
+    description: Register entity types in graph automatically on service registration
+    indent_level: 0
+    raw_marker: -
+  - id: "line_91"
+    line_number: 91
+    status: completed
+    parallel_group: 999999
     description: Create URI patterns from service/procedure combinations
-    indent_level: 0
-    raw_marker: -
-  - id: "line_98"
-    line_number: 98
-    status: completed
-    parallel_group: 999999
-    description: Define URI convention: `scheme:path[#fragment][@version]`
-    indent_level: 0
-    raw_marker: -
-  - id: "line_99"
-    line_number: 99
-    status: completed
-    parallel_group: 999999
-    description: Parse URIs into provider/path/fragment/version components
     indent_level: 0
     raw_marker: -
   - id: "line_100"
     line_number: 100
     status: completed
     parallel_group: 999999
-    description: Resolve version references to concrete content
+    description: Define URI convention: `scheme:path[#fragment][@version]`
     indent_level: 0
     raw_marker: -
   - id: "line_101"
     line_number: 101
     status: completed
     parallel_group: 999999
+    description: Parse URIs into provider/path/fragment/version components
+    indent_level: 0
+    raw_marker: -
+  - id: "line_102"
+    line_number: 102
+    status: completed
+    parallel_group: 999999
+    description: Resolve version references to concrete content
+    indent_level: 0
+    raw_marker: -
+  - id: "line_103"
+    line_number: 103
+    status: completed
+    parallel_group: 999999
     description: Implement cross-provider URI validation
-    indent_level: 0
-    raw_marker: -
-  - id: "line_104"
-    line_number: 104
-    status: completed
-    parallel_group: 999999
-    description: Define `LinkExtractor` interface (patterns, extract)
-    indent_level: 0
-    raw_marker: -
-  - id: "line_105"
-    line_number: 105
-    status: completed
-    parallel_group: 999999
-    description: Implement GitHub link extractor (issue URLs, `#123` references)
     indent_level: 0
     raw_marker: -
   - id: "line_106"
     line_number: 106
     status: completed
     parallel_group: 999999
-    description: Implement Jira link extractor
+    description: Define `LinkExtractor` interface (patterns, extract)
     indent_level: 0
     raw_marker: -
   - id: "line_107"
     line_number: 107
     status: completed
     parallel_group: 999999
-    description: Make extractors pluggable per content type
+    description: Implement GitHub link extractor (issue URLs, `#123` references)
     indent_level: 0
     raw_marker: -
   - id: "line_108"
     line_number: 108
     status: completed
     parallel_group: 999999
-    description: Auto-create links on entity upsert
+    description: Implement Jira link extractor
     indent_level: 0
     raw_marker: -
   - id: "line_109"
     line_number: 109
     status: completed
     parallel_group: 999999
+    description: Make extractors pluggable per content type
+    indent_level: 0
+    raw_marker: -
+  - id: "line_110"
+    line_number: 110
+    status: completed
+    parallel_group: 999999
+    description: Auto-create links on entity upsert
+    indent_level: 0
+    raw_marker: -
+  - id: "line_111"
+    line_number: 111
+    status: completed
+    parallel_group: 999999
     description: Maintain bidirectional links
-    indent_level: 0
-    raw_marker: -
-  - id: "line_112"
-    line_number: 112
-    status: completed
-    parallel_group: 999999
-    description: Define `ViewDefinition` type (name, query, path, format, template, ttl)
-    indent_level: 0
-    raw_marker: -
-  - id: "line_113"
-    line_number: 113
-    status: completed
-    parallel_group: 999999
-    description: Implement Cypher-based view definitions
     indent_level: 0
     raw_marker: -
   - id: "line_114"
     line_number: 114
     status: completed
     parallel_group: 999999
-    description: Implement file system materialization
+    description: Define `ViewDefinition` type (name, query, path, format, template, ttl)
     indent_level: 0
     raw_marker: -
   - id: "line_115"
     line_number: 115
     status: completed
     parallel_group: 999999
+    description: Implement Cypher-based view definitions
+    indent_level: 0
+    raw_marker: -
+  - id: "line_116"
+    line_number: 116
+    status: completed
+    parallel_group: 999999
+    description: Implement file system materialization
+    indent_level: 0
+    raw_marker: -
+  - id: "line_117"
+    line_number: 117
+    status: completed
+    parallel_group: 999999
     description: Add incremental refresh based on TTL
-    indent_level: 0
-    raw_marker: -
-  - id: "line_118"
-    line_number: 118
-    status: completed
-    parallel_group: 999999
-    description: Implement `upsert(entity)` and `upsertBatch(entities)`
-    indent_level: 0
-    raw_marker: -
-  - id: "line_119"
-    line_number: 119
-    status: completed
-    parallel_group: 999999
-    description: Implement `get(uri, version?)` with version resolution
     indent_level: 0
     raw_marker: -
   - id: "line_120"
     line_number: 120
     status: completed
     parallel_group: 999999
-    description: Implement `link/unlink` operations
+    description: Implement `upsert(entity)` and `upsertBatch(entities)`
     indent_level: 0
     raw_marker: -
   - id: "line_121"
     line_number: 121
     status: completed
     parallel_group: 999999
-    description: Implement `query(cypher)` and `traverse(uri, depth)`
+    description: Implement `get(uri, version?)` with version resolution
     indent_level: 0
     raw_marker: -
   - id: "line_122"
     line_number: 122
     status: completed
     parallel_group: 999999
+    description: Implement `link/unlink` operations
+    indent_level: 0
+    raw_marker: -
+  - id: "line_123"
+    line_number: 123
+    status: completed
+    parallel_group: 999999
+    description: Implement `query(cypher)` and `traverse(uri, depth)`
+    indent_level: 0
+    raw_marker: -
+  - id: "line_124"
+    line_number: 124
+    status: completed
+    parallel_group: 999999
     description: Add `inferSchema(type)` for dynamic schema inference
-    indent_level: 0
-    raw_marker: -
-  - id: "line_131"
-    line_number: 131
-    status: pending
-    parallel_group: 999999
-    description: Implement file system scanner for SKILL.md files
-    indent_level: 0
-    raw_marker: -
-  - id: "line_132"
-    line_number: 132
-    status: pending
-    parallel_group: 999999
-    description: Parse skill metadata (triggers, tools, model preferences)
     indent_level: 0
     raw_marker: -
   - id: "line_133"
     line_number: 133
-    status: pending
+    status: completed
     parallel_group: 999999
-    description: Link skills to Git-based versioning
+    description: Implement file system scanner for SKILL.md files
     indent_level: 0
     raw_marker: -
   - id: "line_134"
     line_number: 134
-    status: pending
+    status: completed
+    parallel_group: 999999
+    description: Parse skill metadata (triggers, tools, model preferences)
+    indent_level: 0
+    raw_marker: -
+  - id: "line_135"
+    line_number: 135
+    status: completed
+    parallel_group: 999999
+    description: Link skills to Git-based versioning
+    indent_level: 0
+    raw_marker: -
+  - id: "line_136"
+    line_number: 136
+    status: completed
     parallel_group: 999999
     description: Resolve skill dependencies (required services)
     indent_level: 0
     raw_marker: -
-  - id: "line_137"
-    line_number: 137
-    status: pending
+  - id: "line_139"
+    line_number: 139
+    status: completed
     parallel_group: 999999
     description: Define `SkillDefinition` type (id, uri, name, description, instructions, triggers, tools, model)
     indent_level: 0
     raw_marker: -
-  - id: "line_138"
-    line_number: 138
-    status: pending
+  - id: "line_140"
+    line_number: 140
+    status: completed
     parallel_group: 999999
     description: Store skills in entity graph as `skill.Definition` type
     indent_level: 0
     raw_marker: -
-  - id: "line_139"
-    line_number: 139
-    status: pending
+  - id: "line_141"
+    line_number: 141
+    status: completed
     parallel_group: 999999
     description: Create skill URIs: `skill:path/SKILL.md`
     indent_level: 0
     raw_marker: -
-  - id: "line_142"
-    line_number: 142
-    status: pending
+  - id: "line_144"
+    line_number: 144
+    status: completed
     parallel_group: 999999
     description: Define `SkillTrigger` type (eventFilter, condition, priority)
     indent_level: 0
     raw_marker: -
-  - id: "line_143"
-    line_number: 143
-    status: pending
+  - id: "line_145"
+    line_number: 145
+    status: completed
     parallel_group: 999999
     description: Implement event filter matching against skill triggers
     indent_level: 0
     raw_marker: -
-  - id: "line_144"
-    line_number: 144
-    status: pending
+  - id: "line_146"
+    line_number: 146
+    status: completed
     parallel_group: 999999
     description: Add condition evaluation (Cypher predicates or JS expressions)
     indent_level: 0
     raw_marker: -
-  - id: "line_145"
-    line_number: 145
-    status: pending
+  - id: "line_147"
+    line_number: 147
+    status: completed
     parallel_group: 999999
     description: Implement priority-based execution ordering
     indent_level: 0
     raw_marker: -
-  - id: "line_148"
-    line_number: 148
-    status: pending
+  - id: "line_150"
+    line_number: 150
+    status: completed
     parallel_group: 999999
     description: Implement `register(skill)` and `unregister(skillId)`
     indent_level: 0
     raw_marker: -
-  - id: "line_149"
-    line_number: 149
-    status: pending
+  - id: "line_151"
+    line_number: 151
+    status: completed
     parallel_group: 999999
     description: Implement `list()`, `get(skillId)`, `search(query)`
     indent_level: 0
     raw_marker: -
-  - id: "line_150"
-    line_number: 150
-    status: pending
+  - id: "line_152"
+    line_number: 152
+    status: completed
     parallel_group: 999999
     description: Implement `execute(skillId, context)`
-    indent_level: 0
-    raw_marker: -
-  - id: "line_159"
-    line_number: 159
-    status: pending
-    parallel_group: 999999
-    description: Match incoming events to skill triggers
-    indent_level: 0
-    raw_marker: -
-  - id: "line_160"
-    line_number: 160
-    status: pending
-    parallel_group: 999999
-    description: Build context from entity graph (related entities, services)
     indent_level: 0
     raw_marker: -
   - id: "line_161"
     line_number: 161
     status: pending
     parallel_group: 999999
+    description: Match incoming events to skill triggers
+    indent_level: 0
+    raw_marker: -
+  - id: "line_162"
+    line_number: 162
+    status: pending
+    parallel_group: 999999
+    description: Build context from entity graph (related entities, services)
+    indent_level: 0
+    raw_marker: -
+  - id: "line_163"
+    line_number: 163
+    status: pending
+    parallel_group: 999999
     description: Select appropriate model based on skill preference
-    indent_level: 0
-    raw_marker: -
-  - id: "line_164"
-    line_number: 164
-    status: pending
-    parallel_group: 999999
-    description: Define `Session` type (id, skillId, status, events, result)
-    indent_level: 0
-    raw_marker: -
-  - id: "line_165"
-    line_number: 165
-    status: pending
-    parallel_group: 999999
-    description: Define `SessionConfig` type (skillId, model, context, parentSessionId)
     indent_level: 0
     raw_marker: -
   - id: "line_166"
     line_number: 166
     status: pending
     parallel_group: 999999
-    description: Implement session lifecycle (running → complete/failed/cancelled)
+    description: Define `Session` type (id, skillId, status, events, result)
     indent_level: 0
     raw_marker: -
   - id: "line_167"
     line_number: 167
     status: pending
     parallel_group: 999999
+    description: Define `SessionConfig` type (skillId, model, context, parentSessionId)
+    indent_level: 0
+    raw_marker: -
+  - id: "line_168"
+    line_number: 168
+    status: pending
+    parallel_group: 999999
+    description: Implement session lifecycle (running → complete/failed/cancelled)
+    indent_level: 0
+    raw_marker: -
+  - id: "line_169"
+    line_number: 169
+    status: pending
+    parallel_group: 999999
     description: Support nested sessions for agent-to-agent calls
-    indent_level: 0
-    raw_marker: -
-  - id: "line_170"
-    line_number: 170
-    status: pending
-    parallel_group: 999999
-    description: Stream all LLM chunks as events (`llm.{session}.chunk`)
-    indent_level: 0
-    raw_marker: -
-  - id: "line_171"
-    line_number: 171
-    status: pending
-    parallel_group: 999999
-    description: Emit tool call events (`llm.{session}.tool_call`)
     indent_level: 0
     raw_marker: -
   - id: "line_172"
     line_number: 172
     status: pending
     parallel_group: 999999
-    description: Track progress events (`llm.{session}.progress`)
+    description: Stream all LLM chunks as events (`llm.{session}.chunk`)
     indent_level: 0
     raw_marker: -
   - id: "line_173"
     line_number: 173
     status: pending
     parallel_group: 999999
+    description: Emit tool call events (`llm.{session}.tool_call`)
+    indent_level: 0
+    raw_marker: -
+  - id: "line_174"
+    line_number: 174
+    status: pending
+    parallel_group: 999999
+    description: Track progress events (`llm.{session}.progress`)
+    indent_level: 0
+    raw_marker: -
+  - id: "line_175"
+    line_number: 175
+    status: pending
+    parallel_group: 999999
     description: Implement error handling and retry logic
-    indent_level: 0
-    raw_marker: -
-  - id: "line_176"
-    line_number: 176
-    status: pending
-    parallel_group: 999999
-    description: Send periodic progress updates to origin systems (GitHub, Jira)
-    indent_level: 0
-    raw_marker: -
-  - id: "line_177"
-    line_number: 177
-    status: pending
-    parallel_group: 999999
-    description: Emit completion notifications
     indent_level: 0
     raw_marker: -
   - id: "line_178"
     line_number: 178
     status: pending
     parallel_group: 999999
+    description: Send periodic progress updates to origin systems (GitHub, Jira)
+    indent_level: 0
+    raw_marker: -
+  - id: "line_179"
+    line_number: 179
+    status: pending
+    parallel_group: 999999
+    description: Emit completion notifications
+    indent_level: 0
+    raw_marker: -
+  - id: "line_180"
+    line_number: 180
+    status: pending
+    parallel_group: 999999
     description: Publish artifacts from LLM sessions
-    indent_level: 0
-    raw_marker: -
-  - id: "line_184"
-    line_number: 184
-    status: pending
-    parallel_group: 999999
-    description: **Schema evolution**: Strategy for API schema changes over time
-    indent_level: 0
-    raw_marker: -
-  - id: "line_185"
-    line_number: 185
-    status: pending
-    parallel_group: 999999
-    description: **Conflict resolution**: Handling multiple skills triggering on same event
     indent_level: 0
     raw_marker: -
   - id: "line_186"
     line_number: 186
     status: pending
     parallel_group: 999999
-    description: **Resource limits**: Token budgets, time limits, cost tracking for LLM sessions
+    description: **Schema evolution**: Strategy for API schema changes over time
     indent_level: 0
     raw_marker: -
   - id: "line_187"
     line_number: 187
     status: pending
     parallel_group: 999999
-    description: **Authentication**: Credential vault / OAuth refresh for external APIs
+    description: **Conflict resolution**: Handling multiple skills triggering on same event
     indent_level: 0
     raw_marker: -
   - id: "line_188"
     line_number: 188
     status: pending
     parallel_group: 999999
-    description: **Multi-tenancy**: Single-user vs multi-tenant isolation
+    description: **Resource limits**: Token budgets, time limits, cost tracking for LLM sessions
     indent_level: 0
     raw_marker: -
   - id: "line_189"
     line_number: 189
+    status: pending
+    parallel_group: 999999
+    description: **Authentication**: Credential vault / OAuth refresh for external APIs
+    indent_level: 0
+    raw_marker: -
+  - id: "line_190"
+    line_number: 190
+    status: pending
+    parallel_group: 999999
+    description: **Multi-tenancy**: Single-user vs multi-tenant isolation
+    indent_level: 0
+    raw_marker: -
+  - id: "line_191"
+    line_number: 191
     status: pending
     parallel_group: 999999
     description: **Replay**: Event sourcing patterns for replaying skill executions

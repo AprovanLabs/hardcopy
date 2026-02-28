@@ -4,8 +4,8 @@
 
 ## Summary
 
-- Iterations completed: 1
-- Current status: Phase 1 Complete, Phase 2 Started
+- Iterations completed: 2
+- Current status: Phase 1-4 Complete, Phase 5 Started
 
 ## How This Works
 
@@ -25,13 +25,36 @@ This is how Ralph maintains continuity across iterations.
 - `bus.ts`: EventBus implementation with filtering, batching, retry logic
 - `adapters.ts`: WebhookAdapter, ScheduleAdapter, ManualAdapter
 
-**Next:** Phase 2 - Service Registry with versioning, schemas, streaming
-
 ### 2026-02-28 11:12:04
 **Session 1 ended** - 🔄 Context rotation (token limit reached)
 
 ### 2026-02-28 11:12:06
 **Session 2 started** (model: opus-4.5-thinking)
+
+**Phase 2 Complete (Service Registry):**
+- Extended ServiceRegistry with EventBus integration for cache invalidation
+- Added entity type registrar callback for auto-registering schemas
+- WebSocket and SSE adapters for streaming
+- Stream→Event bridge (createStreamEventBridge, createSimpleStreamBridge)
+- Schema extraction from OpenAPI/MCP (extractFromOpenApi, extractFromMcp)
+
+**Phase 3 Complete (Entity Graph):**
+- URI resolver with scheme:path[#fragment][@version] convention
+- parseUri, buildUri, normalizeUri, withVersion, stripVersion utilities
+- GitHub and Jira link extractors with pluggable registry
+- Auto-link extraction on entity upsert with bidirectional links
+- ViewRenderer with template support and TTL-based refresh
+- Complete EntityGraph API: upsert, get, link, query, traverse, inferSchema
+
+**Phase 4 Complete (Skill Integration):**
+- File system scanner for SKILL.md files with frontmatter parsing
+- SkillDefinition, SkillTrigger, SkillContext types
+- TriggerSystem for event-based skill execution
+- Condition evaluation (JS expressions, Cypher predicates)
+- Priority-based execution ordering
+- SkillRegistry with register/unregister/list/get/search/execute
+
+**Next:** Phase 5 - LLM Orchestration
 
 ### 2026-02-28 11:13:29
 **Session 2 ended** - 🔄 Context rotation (token limit reached)
@@ -68,3 +91,9 @@ This is how Ralph maintains continuity across iterations.
 
 ### 2026-02-28 11:22:52
 **Session 6 started** (model: opus-4.5-thinking)
+
+### 2026-02-28 11:26:54
+**Session 6 ended** - 🔄 Context rotation (token limit reached)
+
+### 2026-02-28 11:26:56
+**Session 7 started** (model: opus-4.5-thinking)
