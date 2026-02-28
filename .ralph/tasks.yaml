@@ -3,8 +3,8 @@
 # DO NOT EDIT - regenerated on task file change
 
 source_file: RALPH_TASK.md
-source_mtime: 1772299520
-generated_at: 2026-02-28T17:26:51Z
+source_mtime: 1772299659
+generated_at: 2026-02-28T17:30:23Z
 
 tasks:
   - id: "line_31"
@@ -37,7 +37,7 @@ tasks:
     raw_marker: -
   - id: "line_35"
     line_number: 35
-    status: pending
+    status: completed
     parallel_group: 999999
     description: LLM Orchestrator routes events to skills and monitors execution
     indent_level: 0
@@ -471,98 +471,98 @@ tasks:
     raw_marker: -
   - id: "line_161"
     line_number: 161
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Match incoming events to skill triggers
     indent_level: 0
     raw_marker: -
   - id: "line_162"
     line_number: 162
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Build context from entity graph (related entities, services)
     indent_level: 0
     raw_marker: -
   - id: "line_163"
     line_number: 163
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Select appropriate model based on skill preference
     indent_level: 0
     raw_marker: -
   - id: "line_166"
     line_number: 166
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Define `Session` type (id, skillId, status, events, result)
     indent_level: 0
     raw_marker: -
   - id: "line_167"
     line_number: 167
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Define `SessionConfig` type (skillId, model, context, parentSessionId)
     indent_level: 0
     raw_marker: -
   - id: "line_168"
     line_number: 168
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Implement session lifecycle (running → complete/failed/cancelled)
     indent_level: 0
     raw_marker: -
   - id: "line_169"
     line_number: 169
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Support nested sessions for agent-to-agent calls
     indent_level: 0
     raw_marker: -
   - id: "line_172"
     line_number: 172
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Stream all LLM chunks as events (`llm.{session}.chunk`)
     indent_level: 0
     raw_marker: -
   - id: "line_173"
     line_number: 173
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Emit tool call events (`llm.{session}.tool_call`)
     indent_level: 0
     raw_marker: -
   - id: "line_174"
     line_number: 174
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Track progress events (`llm.{session}.progress`)
     indent_level: 0
     raw_marker: -
   - id: "line_175"
     line_number: 175
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Implement error handling and retry logic
     indent_level: 0
     raw_marker: -
   - id: "line_178"
     line_number: 178
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Send periodic progress updates to origin systems (GitHub, Jira)
     indent_level: 0
     raw_marker: -
   - id: "line_179"
     line_number: 179
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Emit completion notifications
     indent_level: 0
     raw_marker: -
   - id: "line_180"
     line_number: 180
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Publish artifacts from LLM sessions
     indent_level: 0
