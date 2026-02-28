@@ -85,6 +85,19 @@ export interface SkillContext {
   params?: Record<string, unknown>;
 }
 
+export interface SkillExecutionContext {
+  event?: unknown;
+  parentSessionId?: string;
+  entities?: unknown[];
+  services?: string[];
+  params?: Record<string, unknown>;
+}
+
+export interface SkillExecutionContext {
+  event?: unknown;
+  parentSessionId?: string;
+}
+
 export interface SkillResult {
   skillId: string;
   status: "success" | "error" | "cancelled";
@@ -101,6 +114,6 @@ export interface SkillRegistry {
   list(): Promise<SkillSummary[]>;
   get(skillId: string): Promise<SkillDefinition | null>;
   search(query: string): Promise<SkillDefinition[]>;
-  execute(skillId: string, context: SkillContext): Promise<SkillResult>;
-  findByTrigger(eventType: string): Promise<SkillDefinition[]>;
+  execute(skillId: string, context: SkillContext | SkillExecutionContext): Promise<SkillResult>;
+  findByTrigger(eventType: string, eventData?: unknown): Promise<SkillDefinition[]>;
 }

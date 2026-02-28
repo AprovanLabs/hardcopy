@@ -128,26 +128,26 @@ Be generic in your implementation. Think think thoroughly through the abstractio
 **Goal:** Skills as first-class event-triggered entities.
 
 ### 4.1 Skill Discovery
-- [ ] Implement file system scanner for SKILL.md files
-- [ ] Parse skill metadata (triggers, tools, model preferences)
-- [ ] Link skills to Git-based versioning
-- [ ] Resolve skill dependencies (required services)
+- [x] Implement file system scanner for SKILL.md files
+- [x] Parse skill metadata (triggers, tools, model preferences)
+- [x] Link skills to Git-based versioning
+- [x] Resolve skill dependencies (required services)
 
 ### 4.2 Skill as Entity
-- [ ] Define `SkillDefinition` type (id, uri, name, description, instructions, triggers, tools, model)
-- [ ] Store skills in entity graph as `skill.Definition` type
-- [ ] Create skill URIs: `skill:path/SKILL.md`
+- [x] Define `SkillDefinition` type (id, uri, name, description, instructions, triggers, tools, model)
+- [x] Store skills in entity graph as `skill.Definition` type
+- [x] Create skill URIs: `skill:path/SKILL.md`
 
 ### 4.3 Trigger System
-- [ ] Define `SkillTrigger` type (eventFilter, condition, priority)
-- [ ] Implement event filter matching against skill triggers
-- [ ] Add condition evaluation (Cypher predicates or JS expressions)
-- [ ] Implement priority-based execution ordering
+- [x] Define `SkillTrigger` type (eventFilter, condition, priority)
+- [x] Implement event filter matching against skill triggers
+- [x] Add condition evaluation (Cypher predicates or JS expressions)
+- [x] Implement priority-based execution ordering
 
 ### 4.4 Skill Registry API
-- [ ] Implement `register(skill)` and `unregister(skillId)`
-- [ ] Implement `list()`, `get(skillId)`, `search(query)`
-- [ ] Implement `execute(skillId, context)`
+- [x] Implement `register(skill)` and `unregister(skillId)`
+- [x] Implement `list()`, `get(skillId)`, `search(query)`
+- [x] Implement `execute(skillId, context)`
 
 ---
 

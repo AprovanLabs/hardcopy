@@ -110,7 +110,7 @@ function evaluateCypherCondition(condition: string, event: Envelope): boolean {
       return JSON.stringify(val);
     })
     .replace(/\bevent\.(\w+)\b/g, (_, key) => {
-      const val = (event as Record<string, unknown>)[key];
+      const val = (event as unknown as Record<string, unknown>)[key];
       return JSON.stringify(val);
     })
     .replace(/\s+CONTAINS\s+/gi, ".includes(")
