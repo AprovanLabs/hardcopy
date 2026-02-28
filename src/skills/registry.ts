@@ -38,12 +38,43 @@ export class SkillRegistry implements ISkillRegistry {
   private graph?: EntityGraph;
   private eventBus?: EventBus;
   private executor?: SkillExecutor;
+  private serviceRegistry?: IServiceRegistry;
 
   constructor(options: SkillRegistryOptions) {
     this.db = options.db;
     this.graph = options.graph;
     this.eventBus = options.eventBus;
     this.executor = options.executor;
+    this.serviceRegistry = options.serviceRegistry;
+  }
+
+  setServiceRegistry(registry: IServiceRegistry): void {
+    this.serviceRegistry = registry;
+  }
+
+  async resolveDependencies(skill: SkillDefinition): Promise<DependencyResolution> {
+    const dependencies = skill.dependencies ?? [];
+    if (dependencies.length === 0 || !this.serviceRegistry) {
+      return { resolved: true, missing: [], available: [] };
+    }
+
+    const available: string[] = [];
+    const missing: string[] = [];
+
+    for (const dep of dependencies) {
+      const service = await this.serviceRegistry.get(dep);
+      if (service) {
+        available.push(dep);
+      } else {
+        missing.push(dep);
+      }
+    }
+
+    return {
+      resolved: missing.length === 0,
+      missing,
+      available,
+    };
   }
 
   async register(skill: SkillDefinition): Promise<void> {
