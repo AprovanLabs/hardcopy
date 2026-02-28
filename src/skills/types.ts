@@ -1,0 +1,70 @@
+import type { EventFilter } from "../events/types";
+
+export interface SkillTrigger {
+  eventFilter: EventFilter;
+  condition?: string;
+  priority?: number;
+}
+
+export interface SkillResource {
+  path: string;
+  content: string;
+}
+
+export interface ModelPreference {
+  provider?: string;
+  model?: string;
+  temperature?: number;
+  maxTokens?: number;
+}
+
+export interface SkillDefinition {
+  id: string;
+  uri: string;
+  name: string;
+  description: string;
+  instructions: string;
+  resources: SkillResource[];
+  triggers: SkillTrigger[];
+  tools: string[];
+  model?: ModelPreference;
+  version?: string;
+  dependencies?: string[];
+}
+
+export interface SkillSummary {
+  id: string;
+  uri: string;
+  name: string;
+  description: string;
+  triggerCount: number;
+  toolCount: number;
+}
+
+export interface SkillContext {
+  event?: unknown;
+  entities: unknown[];
+  services: string[];
+  history?: unknown[];
+  params?: Record<string, unknown>;
+}
+
+export interface SkillResult {
+  skillId: string;
+  status: "success" | "error" | "cancelled";
+  output?: unknown;
+  error?: string;
+  startedAt: string;
+  completedAt: string;
+  events?: unknown[];
+}
+
+export interface SkillRegistry {
+  register(skill: SkillDefinition): Promise<void>;
+  unregister(skillId: string): Promise<void>;
+  list(): Promise<SkillSummary[]>;
+  get(skillId: string): Promise<SkillDefinition | null>;
+  search(query: string): Promise<SkillDefinition[]>;
+  execute(skillId: string, context: SkillContext): Promise<SkillResult>;
+  findByTrigger(eventType: string): Promise<SkillDefinition[]>;
+}

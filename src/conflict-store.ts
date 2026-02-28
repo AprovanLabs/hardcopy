@@ -19,6 +19,7 @@ export class ConflictStore {
       nodeId: info.nodeId,
       nodeType: info.nodeType,
       filePath: info.filePath,
+      viewRelPath: info.viewRelPath,
       detectedAt: new Date(info.detectedAt).toISOString(),
       fields: info.fields.map((field) => ({
         field: field.field,
@@ -48,6 +49,7 @@ export class ConflictStore {
           nodeId: String(data["nodeId"] ?? ""),
           nodeType: String(data["nodeType"] ?? ""),
           filePath: String(data["filePath"] ?? ""),
+          viewRelPath: String(data["viewRelPath"] ?? ""),
           detectedAt: Number.isNaN(detectedAt) ? 0 : detectedAt,
           fields,
         });
