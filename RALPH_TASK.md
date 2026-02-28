@@ -181,14 +181,16 @@ Be generic in your implementation. Think think thoroughly through the abstractio
 
 ---
 
-## Open Questions to Address
+## Future Considerations (Out of Scope)
 
-- [ ] **Schema evolution**: Strategy for API schema changes over time
-- [ ] **Conflict resolution**: Handling multiple skills triggering on same event
-- [ ] **Resource limits**: Token budgets, time limits, cost tracking for LLM sessions
-- [ ] **Authentication**: Credential vault / OAuth refresh for external APIs
-- [ ] **Multi-tenancy**: Single-user vs multi-tenant isolation
-- [ ] **Replay**: Event sourcing patterns for replaying skill executions
+The following are future enhancements to consider, not requirements for this task:
+
+- **Schema evolution**: Strategy for API schema changes over time
+- **Conflict resolution**: Handling multiple skills triggering on same event
+- **Resource limits**: Token budgets, time limits, cost tracking for LLM sessions
+- **Authentication**: Credential vault / OAuth refresh for external APIs
+- **Multi-tenancy**: Single-user vs multi-tenant isolation
+- **Replay**: Event sourcing patterns for replaying skill executions
 
 ---
 
