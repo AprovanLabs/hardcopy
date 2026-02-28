@@ -10,7 +10,7 @@ import type {
 } from "./types";
 import type { ServiceStore } from "./store";
 import type { EventBus, Envelope, Subscription } from "../events/types";
-import { createStreamEventBridge } from "./streaming";
+import { createSimpleStreamBridge } from "./streaming";
 
 type ServiceAdapter = {
   call(procedure: string, args: unknown): Promise<unknown>;
@@ -205,7 +205,7 @@ export class ServiceRegistry implements IServiceRegistry {
       return rawStream;
     }
 
-    const bridge = createStreamEventBridge({
+    const bridge = createSimpleStreamBridge({
       source: `service:${namespace}`,
       eventBus: this.eventBus,
       typePrefix: `stream.${namespace}.${procedure}`,
