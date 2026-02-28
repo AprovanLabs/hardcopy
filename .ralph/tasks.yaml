@@ -3,8 +3,8 @@
 # DO NOT EDIT - regenerated on task file change
 
 source_file: RALPH_TASK.md
-source_mtime: 1772299045
-generated_at: 2026-02-28T17:19:39Z
+source_mtime: 1772299263
+generated_at: 2026-02-28T17:22:47Z
 
 tasks:
   - id: "line_29"
@@ -240,133 +240,133 @@ tasks:
     raw_marker: -
   - id: "line_98"
     line_number: 98
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Define URI convention: `scheme:path[#fragment][@version]`
     indent_level: 0
     raw_marker: -
   - id: "line_99"
     line_number: 99
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Parse URIs into provider/path/fragment/version components
     indent_level: 0
     raw_marker: -
   - id: "line_100"
     line_number: 100
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Resolve version references to concrete content
     indent_level: 0
     raw_marker: -
   - id: "line_101"
     line_number: 101
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Implement cross-provider URI validation
     indent_level: 0
     raw_marker: -
   - id: "line_104"
     line_number: 104
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Define `LinkExtractor` interface (patterns, extract)
     indent_level: 0
     raw_marker: -
   - id: "line_105"
     line_number: 105
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Implement GitHub link extractor (issue URLs, `#123` references)
     indent_level: 0
     raw_marker: -
   - id: "line_106"
     line_number: 106
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Implement Jira link extractor
     indent_level: 0
     raw_marker: -
   - id: "line_107"
     line_number: 107
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Make extractors pluggable per content type
     indent_level: 0
     raw_marker: -
   - id: "line_108"
     line_number: 108
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Auto-create links on entity upsert
     indent_level: 0
     raw_marker: -
   - id: "line_109"
     line_number: 109
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Maintain bidirectional links
     indent_level: 0
     raw_marker: -
   - id: "line_112"
     line_number: 112
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Define `ViewDefinition` type (name, query, path, format, template, ttl)
     indent_level: 0
     raw_marker: -
   - id: "line_113"
     line_number: 113
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Implement Cypher-based view definitions
     indent_level: 0
     raw_marker: -
   - id: "line_114"
     line_number: 114
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Implement file system materialization
     indent_level: 0
     raw_marker: -
   - id: "line_115"
     line_number: 115
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Add incremental refresh based on TTL
     indent_level: 0
     raw_marker: -
   - id: "line_118"
     line_number: 118
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Implement `upsert(entity)` and `upsertBatch(entities)`
     indent_level: 0
     raw_marker: -
   - id: "line_119"
     line_number: 119
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Implement `get(uri, version?)` with version resolution
     indent_level: 0
     raw_marker: -
   - id: "line_120"
     line_number: 120
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Implement `link/unlink` operations
     indent_level: 0
     raw_marker: -
   - id: "line_121"
     line_number: 121
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Implement `query(cypher)` and `traverse(uri, depth)`
     indent_level: 0
     raw_marker: -
   - id: "line_122"
     line_number: 122
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Add `inferSchema(type)` for dynamic schema inference
     indent_level: 0

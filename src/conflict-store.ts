@@ -81,6 +81,7 @@ export class ConflictStore {
         nodeId: String(data["nodeId"] ?? nodeId),
         nodeType: String(data["nodeType"] ?? ""),
         filePath: String(data["filePath"] ?? ""),
+        viewRelPath: String(data["viewRelPath"] ?? ""),
         detectedAt: Number.isNaN(detectedAt) ? 0 : detectedAt,
         fields,
       };
