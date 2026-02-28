@@ -1,8 +1,7 @@
 import { writeFile, mkdir, readdir, unlink, stat } from "fs/promises";
 import { join, dirname, relative } from "path";
 import yaml from "yaml";
-import type { Entity, ViewDefinition } from "./types";
-import type { EntityGraph } from "./entity-graph";
+import type { Entity, ViewDefinition, EntityGraph } from "./types";
 
 export interface ViewRenderResult {
   path: string;
