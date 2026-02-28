@@ -3,8 +3,8 @@
 # DO NOT EDIT - regenerated on task file change
 
 source_file: RALPH_TASK.md
-source_mtime: 1772298683
-generated_at: 2026-02-28T17:12:02Z
+source_mtime: 1772299045
+generated_at: 2026-02-28T17:19:39Z
 
 tasks:
   - id: "line_29"
@@ -142,98 +142,98 @@ tasks:
     raw_marker: -
   - id: "line_70"
     line_number: 70
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Define `ServiceDefinition` type (namespace, version, source, procedures, types)
     indent_level: 0
     raw_marker: -
   - id: "line_71"
     line_number: 71
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Store service definitions in entity graph
     indent_level: 0
     raw_marker: -
   - id: "line_72"
     line_number: 72
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Implement semantic version tracking
     indent_level: 0
     raw_marker: -
   - id: "line_73"
     line_number: 73
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Extract schemas from OpenAPI/MCP definitions
     indent_level: 0
     raw_marker: -
   - id: "line_76"
     line_number: 76
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Add per-procedure TTL configuration
     indent_level: 0
     raw_marker: -
   - id: "line_77"
     line_number: 77
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Implement cache invalidation via events
     indent_level: 0
     raw_marker: -
   - id: "line_78"
     line_number: 78
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Add ETag/Last-Modified support for HTTP backends
     indent_level: 0
     raw_marker: -
   - id: "line_81"
     line_number: 81
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Create WebSocket adapter for streaming procedures
     indent_level: 0
     raw_marker: -
   - id: "line_82"
     line_number: 82
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Create SSE adapter for streaming procedures
     indent_level: 0
     raw_marker: -
   - id: "line_83"
     line_number: 83
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Implement Stream → Event bridge (stream events published to bus)
     indent_level: 0
     raw_marker: -
   - id: "line_84"
     line_number: 84
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Mark streaming procedures in service registry
     indent_level: 0
     raw_marker: -
   - id: "line_87"
     line_number: 87
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Extract input/output types from service schemas
     indent_level: 0
     raw_marker: -
   - id: "line_88"
     line_number: 88
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Register entity types in graph automatically on service registration
     indent_level: 0
     raw_marker: -
   - id: "line_89"
     line_number: 89
-    status: pending
+    status: completed
     parallel_group: 999999
     description: Create URI patterns from service/procedure combinations
     indent_level: 0
