@@ -113,8 +113,10 @@ export class LLMOrchestrator implements Orchestrator {
         event: route.context.event,
         entities: route.context.entities,
         services: route.context.services,
-        params: route.context.params,
-        parentSessionId: event.metadata?.sessionId as string | undefined,
+        params: {
+          ...route.context.params,
+          parentSessionId: event.metadata?.sessionId as string | undefined,
+        },
       };
 
       const maxConcurrent = this.config.maxConcurrent ?? 10;
@@ -147,7 +149,7 @@ export class LLMOrchestrator implements Orchestrator {
           services: context.services ?? [],
           params: context.params,
         },
-        parentSessionId: context.parentSessionId,
+        parentSessionId: context.params?.parentSessionId as string | undefined,
       });
 
       await this.sessionManager.updateStatus(session.id, "running");
@@ -190,8 +192,10 @@ export class LLMOrchestrator implements Orchestrator {
       event: config.context.event,
       entities: config.context.entities,
       services: config.context.services,
-      params: config.context.params,
-      parentSessionId: config.parentSessionId,
+      params: {
+        ...config.context.params,
+        parentSessionId: config.parentSessionId,
+      },
     };
 
     let retries = 0;

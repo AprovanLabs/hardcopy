@@ -203,6 +203,7 @@ export class SkillRegistry implements ISkillRegistry {
       entities: context.entities ?? [],
       services: context.services ?? [],
       params: context.params,
+      parentSessionId: context.parentSessionId,
     };
 
     const startedAt = new Date().toISOString();

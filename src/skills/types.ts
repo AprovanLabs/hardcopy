@@ -83,6 +83,7 @@ export interface SkillContext {
   services: string[];
   history?: unknown[];
   params?: Record<string, unknown>;
+  parentSessionId?: string;
 }
 
 export interface SkillExecutionContext {
