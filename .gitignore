@@ -143,9 +143,11 @@ pnpm-lock.yaml
 
 # Hardcopy
 .hardcopy
-hardcopy.yaml
 .index
 
 # GraphQLite extension binaries
 *.dylib
 *.so
+
+# Ralph config (may contain API key)
+.cursor/ralph-config.json
