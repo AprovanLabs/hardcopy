@@ -37,6 +37,15 @@ CREATE INDEX IF NOT EXISTS hc_idx_edges_from ON hc_edges(from_id);
 CREATE INDEX IF NOT EXISTS hc_idx_edges_to ON hc_edges(to_id);
 CREATE INDEX IF NOT EXISTS hc_idx_edges_type ON hc_edges(type);
 
+CREATE TABLE IF NOT EXISTS hc_file_synced (
+  node_id TEXT NOT NULL,
+  file_path TEXT NOT NULL,
+  synced_at INTEGER NOT NULL,
+  PRIMARY KEY (node_id, file_path)
+);
+
+CREATE INDEX IF NOT EXISTS hc_idx_file_synced_node ON hc_file_synced(node_id);
+
 CREATE TABLE IF NOT EXISTS hc_events (
   id TEXT PRIMARY KEY,
   stream TEXT NOT NULL,
@@ -815,6 +824,36 @@ export class HardcopyDatabase {
       sourceId: row["source_id"] as string | undefined,
       parentId: row["parent_id"] as string | undefined,
     };
+  }
+
+  async getFileSyncedAt(nodeId: string, filePath: string): Promise<number | null> {
+    const stmt = this.db.prepare(
+      "SELECT synced_at FROM hc_file_synced WHERE node_id = ? AND file_path = ?",
+    );
+    const result = stmt.all(nodeId, filePath) as { synced_at: number }[];
+    return result.length > 0 ? result[0]!.synced_at : null;
+  }
+
+  async setFileSyncedAt(nodeId: string, filePath: string, syncedAt: number): Promise<void> {
+    const stmt = this.db.prepare(
+      `INSERT INTO hc_file_synced (node_id, file_path, synced_at)
+       VALUES (?, ?, ?)
+       ON CONFLICT(node_id, file_path) DO UPDATE SET
+         synced_at = excluded.synced_at`,
+    );
+    stmt.run(nodeId, filePath, syncedAt);
+  }
+
+  async deleteFileSyncedAt(nodeId: string, filePath?: string): Promise<void> {
+    if (filePath) {
+      const stmt = this.db.prepare(
+        "DELETE FROM hc_file_synced WHERE node_id = ? AND file_path = ?",
+      );
+      stmt.run(nodeId, filePath);
+    } else {
+      const stmt = this.db.prepare("DELETE FROM hc_file_synced WHERE node_id = ?");
+      stmt.run(nodeId);
+    }
   }
 
   async close(): Promise<void> {

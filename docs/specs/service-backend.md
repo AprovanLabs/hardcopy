@@ -139,14 +139,6 @@ Formalize the existing `namespace.Type` / `namespace:id` conventions as enforced
 
 This logic lives in Stitchery's `ServiceRegistry` so it's shared across all consumers.
 
-### 6. Dynamic MCP tool exposure
-
-Replace the static MCP tool list in `mcp-server.ts` with a pass-through from the registry:
-
-- On init, query `registry.searchTools()` and expose each as an MCP tool.
-- Provider-specific tools (from `getTools()`) surface automatically.
-- The `search_services` meta-tool (already in Stitchery) is reused.
-
 ### 7. External services via UTCP (no new code)
 
 Because Hardcopy now consumes `ServiceRegistry`, and `ServiceRegistry` already integrates with `@aprovan/patchwork-utcp`, Hardcopy gains UTCP support for free. Adding a new external service means updating the shared Stitchery config — Hardcopy picks it up via namespace reference.

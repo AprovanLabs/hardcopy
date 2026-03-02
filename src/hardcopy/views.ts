@@ -128,6 +128,8 @@ async function renderNodeToFile(
     await writeFile(fullPath, content);
 
     const fileStat = await stat(fullPath);
+    const viewRelPath = join(view.path, filePath);
+    await db.setFileSyncedAt(node.id, viewRelPath, fileStat.mtimeMs);
     await db.upsertNode({ ...node, syncedAt: fileStat.mtimeMs });
 
     renderedPaths.push(filePath);
