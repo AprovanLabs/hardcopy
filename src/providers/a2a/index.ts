@@ -21,8 +21,6 @@ export interface A2AConfig {
 export function createA2AProvider(config: A2AConfig): Provider {
   return {
     name: "a2a",
-    nodeTypes: ["a2a.Task", "a2a.Session", "a2a.Agent"],
-    edgeTypes: ["a2a.TRACKS", "a2a.CREATED_BY", "a2a.PART_OF"],
 
     async fetch(request: FetchRequest): Promise<FetchResult> {
       const nodes: Node[] = [];

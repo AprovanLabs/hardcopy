@@ -61,3 +61,4 @@ Hardcopy.prototype.resolveConflict = resolveConflict;
 export { Hardcopy } from "./core";
 export { initHardcopy } from "./init";
 export * from "./types";
+export * from "./sync-engine";

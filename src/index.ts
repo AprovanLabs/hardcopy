@@ -13,6 +13,7 @@ export * from "./llm-merge";
 export * from "./rate-limit";
 export * from "./event-bus";
 export * from "./sync-scheduler";
+export * from "./service";
 export * from "./hooks/diff";
 export * from "./hooks/match";
 export * from "./hooks/template";

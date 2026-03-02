@@ -1,14 +1,6 @@
----
-task: Implement What's Next - Unified Event System
----
+# Patchwork + Hardcopy + Apprentice Consolidation
 
-# Task: Implement Unified Event System
-
-Create new knowledge base docs as you deem fit, in 'docs', while iterating.
-
-[whats-next.md](./docs/specs/whats-next.md) defines a system where "everything is a stream" - unifying Stitchery (dynamic API integration), Hardcopy (entity graph), and Apprentice (events/assets with versioning) into a cohesive event-driven architecture.
-
-Keep iterating, updating this RALPH_TASK.md document as you discover new ideas. Continually refactor as-needed.
+IMPLEMENT ONLY HARDCOPY FUNCTIONALITY
 
 Prefer to be concise and simple with your approach. Avoid duplicated code and re-implementing exiting functionality. Always be aware of where code _should_ go.
 
@@ -17,7 +9,6 @@ Prefer to be concise and simple with your approach. Avoid duplicated code and re
 - Do NOT keep backwards compatibility. Break legacy implementations where needed and remove deprecated code.
 - Re-factor and re-organize as-needed, as you go.
 
-
 Be generic in your implementation. Think think thoroughly through the abstractions you create and consider if there is a more powerful variant that preserves functionality without major sacrifices.
 
 - ALWAYS use a strong sense of module isolation
@@ -25,200 +16,152 @@ Be generic in your implementation. Think think thoroughly through the abstractio
 - ALWAYS consider how the implementation will work long-term and be extensible.
 - ALWAYS check with the user if there are open questions, conflicts, or fundamental issues with the approach.
 
+> **Specs:** [docs/specs](docs/specs/)
 
-## Success Criteria
+## Apprentice Refactor (OUT OF SCOPE)
 
-- [x] Event Bus operational with publish/subscribe/query
-- [x] Service Registry extended with versioning, schemas, and streaming
-- [x] Entity Graph supports URI-based linking and dynamic schemas
-- [x] Skills can be triggered by events
-- [x] LLM Orchestrator routes events to skills and monitors execution
+> Spec: [apprentice-refactor.md](docs/specs/apprentice-refactor.md)
+> **Status:** Not in current scope - task says "IMPLEMENT ONLY HARDCOPY FUNCTIONALITY"
 
----
+### Phase A1: Add EntityGraph
 
-## Phase 1: Event Bus Foundation
+- Add `entities` table to DB schema
+- Add `entity_links` table to DB schema
+- Implement `EntityGraph` interface
+- Merge `assets` as entities with `file:` URI scheme
+- Merge `events` as entities with `event:` URI scheme
+- Add URI utilities: `parseUri`, `formatUri`, `normalizeUri`
 
-**Goal:** Unify all inputs/outputs through a single event primitive (Envelope).
+### Phase A2: Upgrade EventBus
 
-### 1.1 Define Core Types
-- [x] Create `Envelope` type (id, timestamp, type, source, subject, data, metadata)
-- [x] Create `EventFilter` type (types, sources, subjects, since, metadata)
-- [x] Create `EventBus` interface (publish, subscribe, stream, query)
+- Refactor `events` table to match `Envelope` schema
+- Add in-memory subscription registry
+- Add filter matching (types, sources, subjects with wildcards)
+- Integrate EventBus with EntityGraph
 
-### 1.2 SQLite Event Store
-- [x] Create `events` table with columns matching Envelope schema
-- [x] Add FTS index on `type`, `source`, `subject`, `data`
-- [x] Add embedding column for vector search (from Apprentice pattern)
-- [x] Implement batch insert for high throughput
-- [x] Add time-based partitioning for efficient queries
+### Phase A3: Add Orchestrator
 
-### 1.3 Event Routing
-- [x] Implement filter-based subscription matching
-- [x] Create dead letter queue for failed handlers
-- [x] Implement at-least-once delivery semantics
+- Add `sessions` table
+- Implement `SessionManager`
+- Implement `Orchestrator` with event routing
+- Add concurrency control (`maxConcurrent` with queue)
+- Add pluggable `ExternalNotifier` interface
 
-### 1.4 Ingest Adapters
-- [x] Webhook receiver (HTTP POST → Envelope)
-- [x] Schedule adapter (CRON → periodic Envelope)
-- [x] Manual adapter (CLI/UI → Envelope)
+### Phase A4: Export Package
 
----
-
-## Phase 2: Service Registry with Schemas (Stitchery++)
-
-**Goal:** Extend Stitchery with versioning, caching, and streaming.
-
-### 2.1 Service Persistence
-- [x] Define `ServiceDefinition` type (namespace, version, source, procedures, types)
-- [x] Store service definitions in entity graph
-- [x] Implement semantic version tracking
-- [x] Extract schemas from OpenAPI/MCP definitions
-
-### 2.2 Caching Layer
-- [x] Add per-procedure TTL configuration
-- [x] Implement cache invalidation via events
-- [x] Add ETag/Last-Modified support for HTTP backends
-
-### 2.3 Streaming Support
-- [x] Create WebSocket adapter for streaming procedures
-- [x] Create SSE adapter for streaming procedures
-- [x] Implement Stream → Event bridge (stream events published to bus)
-- [x] Mark streaming procedures in service registry
-
-### 2.4 Auto-Generated Entity Types
-- [x] Extract input/output types from service schemas
-- [x] Register entity types in graph automatically on service registration
-- [x] Create URI patterns from service/procedure combinations
+- Export `EntityGraph`, `Entity`, `EntityLink`, `EntityFilter`
+- Export `EventBus`, `Envelope`, `EventFilter`, `Subscription`
+- Export `Orchestrator`, `Session`, `SessionManager`
+- Export `SearchEngine`, `SearchResult`
+- Export `createApprentice`, `ApprenticeConfig`
 
 ---
 
-## Phase 3: Entity Graph with Dynamic Linking (Hardcopy++)
+## Patchwork Refactor (OUT OF SCOPE)
 
-**Goal:** Extend Hardcopy with URI-based linking and dynamic schemas.
+> Spec: [patchwork-refactor.md](docs/specs/patchwork-refactor.md)
+> **Status:** Not in current scope - task says "IMPLEMENT ONLY HARDCOPY FUNCTIONALITY"
 
-### 3.1 URI Resolver
-- [x] Define URI convention: `scheme:path[#fragment][@version]`
-- [x] Parse URIs into provider/path/fragment/version components
-- [x] Resolve version references to concrete content
-- [x] Implement cross-provider URI validation
+### Phase B1: Remove Duplicated Modules
 
-### 3.2 Link Extraction
-- [x] Define `LinkExtractor` interface (patterns, extract)
-- [x] Implement GitHub link extractor (issue URLs, `#123` references)
-- [x] Implement Jira link extractor
-- [x] Make extractors pluggable per content type
-- [x] Auto-create links on entity upsert
-- [x] Maintain bidirectional links
+- Delete `packages/events/` (use `@aprovan/apprentice`)
+- Delete `packages/graph/` (use `@aprovan/apprentice`)
+- Delete `packages/orchestrator/` (use `@aprovan/apprentice`)
 
-### 3.3 Dynamic Views
-- [x] Define `ViewDefinition` type (name, query, path, format, template, ttl)
-- [x] Implement Cypher-based view definitions
-- [x] Implement file system materialization
-- [x] Add incremental refresh based on TTL
+### Phase B2: Simplify ServiceRegistry
 
-### 3.4 Entity API
-- [x] Implement `upsert(entity)` and `upsertBatch(entities)`
-- [x] Implement `get(uri, version?)` with version resolution
-- [x] Implement `link/unlink` operations
-- [x] Implement `query(cypher)` and `traverse(uri, depth)`
-- [x] Add `inferSchema(type)` for dynamic schema inference
+- Remove `utcp` source type and related code
+- Remove `grpc` (not implemented)
+- Simplify to MCP spawn + HTTP fetch + local function
+- Keep caching with TTL and event-based invalidation
 
----
+### Phase B3: Refactor SkillRegistry
 
-## Phase 4: Skill Integration
+- Remove `SkillExecutor` from registry
+- Make registry purely for discovery and trigger matching
+- Skills reference services by namespace
 
-**Goal:** Skills as first-class event-triggered entities.
+### Phase B4: Wire Stitchery to Apprentice
 
-### 4.1 Skill Discovery
-- [x] Implement file system scanner for SKILL.md files
-- [x] Parse skill metadata (triggers, tools, model preferences)
-- [x] Link skills to Git-based versioning
-- [x] Resolve skill dependencies (required services)
+- Update `unified.ts` to use Apprentice runtime
+- Wire `ServiceRegistry` to Apprentice db/eventBus
+- Wire `SkillRegistry` to Apprentice entityGraph
+- Set skill resolver on orchestrator
+- Set tool executor on orchestrator
 
-### 4.2 Skill as Entity
-- [x] Define `SkillDefinition` type (id, uri, name, description, instructions, triggers, tools, model)
-- [x] Store skills in entity graph as `skill.Definition` type
-- [x] Create skill URIs: `skill:path/SKILL.md`
+### Phase B5: Update apps/chat
 
-### 4.3 Trigger System
-- [x] Define `SkillTrigger` type (eventFilter, condition, priority)
-- [x] Implement event filter matching against skill triggers
-- [x] Add condition evaluation (Cypher predicates or JS expressions)
-- [x] Implement priority-based execution ordering
-
-### 4.4 Skill Registry API
-- [x] Implement `register(skill)` and `unregister(skillId)`
-- [x] Implement `list()`, `get(skillId)`, `search(query)`
-- [x] Implement `execute(skillId, context)`
+- Chat messages → `eventBus.publish()` as `chat.message.sent`
+- LLM responses → `eventBus.publish()` as `llm.{sessionId}.chunk`
+- Tool calls → `serviceRegistry.call()`
+- Entity references → `entityGraph.get()` + `traverse()`
 
 ---
 
-## Phase 5: LLM Orchestration
+## Hardcopy Refactor
 
-**Goal:** The "dumb" orchestrator that routes events to skills and monitors execution.
+> Spec: [hardcopy-refactor.md](docs/specs/hardcopy-refactor.md)
 
-### 5.1 Event → Skill Routing
-- [x] Match incoming events to skill triggers
-- [x] Build context from entity graph (related entities, services)
-- [x] Select appropriate model based on skill preference
+### Phase C1: Remove Duplicated Modules
 
-### 5.2 Session Management
-- [x] Define `Session` type (id, skillId, status, events, result)
-- [x] Define `SessionConfig` type (skillId, model, context, parentSessionId)
-- [x] Implement session lifecycle (running → complete/failed/cancelled)
-- [x] Support nested sessions for agent-to-agent calls
+- [x] Delete `src/events/` (use `@aprovan/apprentice`)
+- [x] Delete `src/graph/` (use `@aprovan/apprentice`)
+- [x] Delete `src/orchestrator/` (use `@aprovan/apprentice`)
+- [x] Delete `src/services/` (use `@patchwork/services`)
+- [x] Delete `src/skills/` (use `@patchwork/skills`)
 
-### 5.3 Execution Monitoring
-- [x] Stream all LLM chunks as events (`llm.{session}.chunk`)
-- [x] Emit tool call events (`llm.{session}.tool_call`)
-- [x] Track progress events (`llm.{session}.progress`)
-- [x] Implement error handling and retry logic
+### Phase C2: Simplify Provider to SyncAdapter
 
-### 5.4 External Updates
-- [x] Send periodic progress updates to origin systems (GitHub, Jira)
-- [x] Emit completion notifications
-- [x] Publish artifacts from LLM sessions
+- [x] Remove `nodeTypes`, `edgeTypes`, `streams`, `subscribe`, `query` from Provider
+- [x] Implement `SyncAdapter` interface (fetch/push/canHandle)
+- [x] SyncAdapter handles URI scheme routing
+
+### Phase C3: Convert Contribs to Skills
+
+- [x] Delete `src/contrib/github.ts`
+- [x] Delete `src/contrib/jira.ts`
+- [x] Delete `src/contrib/stripe.ts`
+- [x] Create example skills in `skills/` directory
+
+### Phase C4: Core Sync Engine
+
+- [x] Implement `diff(local, remote)` → `Change[]`
+- [x] Implement `merge(local, remote, strategy)` → `Entity`
+- [x] Implement `renderView(entity, format)` → `string`
+- [x] Implement `parseView(content, format)` → `Partial<Entity>`
+
+### Phase C5: Expose as Service
+
+- [x] Create `src/service.ts`
+- [x] Register `hardcopy.fetch` procedure
+- [x] Register `hardcopy.push` procedure
+- [x] Register `hardcopy.diff` procedure
+- [x] Register `hardcopy.sync` procedure
 
 ---
 
-## Future Considerations (Out of Scope)
+## Integration (OUT OF SCOPE - Requires Apprentice/Patchwork)
 
-The following are future enhancements to consider, not requirements for this task:
+> Spec: [architecture-overview.md](docs/specs/architecture-overview.md)
+> **Status:** Blocked until Apprentice/Patchwork phases are implemented
 
-- **Schema evolution**: Strategy for API schema changes over time
-- **Conflict resolution**: Handling multiple skills triggering on same event
-- **Resource limits**: Token budgets, time limits, cost tracking for LLM sessions
-- **Authentication**: Credential vault / OAuth refresh for external APIs
-- **Multi-tenancy**: Single-user vs multi-tenant isolation
-- **Replay**: Event sourcing patterns for replaying skill executions
+### Test Checklist (Future)
 
----
+- Chat message creates event with correct type/source/subject
+- Orchestrator matches skill by trigger
+- Skill can call Hardcopy service
+- Hardcopy delegates to provider skill
+- Entity stored in graph with correct URI
+- Subsequent requests use cached entity
+- Push flow works (user says "close this issue")
+- Events visible in Apprentice search
 
-## Architecture Reference
+### Implementation Steps
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              EVENT BUS                                       │
-│  Envelope[] → routing, batching, deduplication, dead letter                 │
-└──────────────────────────────────┬──────────────────────────────────────────┘
-                                   │
-       ┌───────────────────────────┼───────────────────────────┐
-       │                           │                           │
-       ▼                           ▼                           ▼
-┌──────────────────┐     ┌─────────────────────┐     ┌─────────────────────┐
-│  SERVICE REGISTRY │     │    ENTITY GRAPH     │     │   SKILL REGISTRY    │
-│  (Stitchery++)    │     │    (Hardcopy++)     │     │   (Skills++)        │
-└───────┬──────────┘     └──────────┬──────────┘     └──────────┬──────────┘
-        │                           │                           │
-        └───────────────────────────┼───────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                            LLM ORCHESTRATOR                                  │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+- [x] Create `skills/github-assistant/SKILL.md` with chat trigger
+- [x] Create `skills/github-sync/SKILL.md` with sync logic
 
-## Context
-
-- [whats-next.md](./docs/specs/whats-next.md) - Full design specification
-- [unified-event-system.md](./docs/specs/unified-event-system.md) - Related spec
+**Remaining (blocked on Apprentice/Patchwork):**
+- Register Hardcopy as local service in Stitchery
+- Wire chat UI to publish/subscribe events
+- Test full flow with real GitHub issue

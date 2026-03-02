@@ -49,12 +49,6 @@ export class Hardcopy {
       if (factory) {
         const provider = factory(source);
         this._providers.set(source.name, provider);
-        if (provider.streams) {
-          const bus = this.getEventBus();
-          for (const stream of provider.streams) {
-            bus.registerStream(stream);
-          }
-        }
       }
     }
     if (this._config.hooks?.length) {
@@ -95,10 +89,7 @@ export class Hardcopy {
   }
 
   async close(): Promise<void> {
-    if (this._eventBus) {
-      await this._eventBus.detachAll();
-      this._eventBus = null;
-    }
+    this._eventBus = null;
     if (this._db) {
       await this._db.close();
       this._db = null;

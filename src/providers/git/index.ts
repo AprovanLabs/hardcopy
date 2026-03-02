@@ -83,8 +83,6 @@ async function readWorktreeMeta(
 export function createGitProvider(config: GitConfig): Provider {
   return {
     name: "git",
-    nodeTypes: ["git.Branch", "git.Worktree", "git.Commit"],
-    edgeTypes: ["git.TRACKS", "git.CONTAINS", "git.WORKTREE_OF"],
 
     async fetch(request: FetchRequest): Promise<FetchResult> {
       const nodes: Node[] = [];
