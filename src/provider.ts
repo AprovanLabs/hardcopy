@@ -4,11 +4,6 @@ import type {
   FetchRequest,
   FetchResult,
   PushResult,
-  Stream,
-  Event,
-  SubscribeOptions,
-  EventFilter,
-  EventPage,
 } from "./types";
 
 export interface Tool {
@@ -26,10 +21,6 @@ export interface Provider {
   push(node: Node, changes: Change[]): Promise<PushResult>;
   fetchNode(nodeId: string): Promise<Node | null>;
   getTools(): Tool[];
-
-  streams?: Stream[];
-  subscribe?(stream: string, options?: SubscribeOptions): AsyncIterable<Event[]>;
-  query?(stream: string, filter: EventFilter): Promise<EventPage>;
 }
 
 export type ProviderFactory = (config: Record<string, unknown>) => Provider;

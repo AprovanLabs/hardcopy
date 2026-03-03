@@ -3,7 +3,6 @@ import { mkdir } from "fs/promises";
 import { Database } from "../db";
 import { CRDTStore } from "../crdt";
 import { ConflictStore } from "../conflict-store";
-import { EventBus } from "../event-bus";
 import { loadEnvFile } from "../env";
 import { loadConfig, type Config } from "../config";
 import { getProvider, type Provider } from "../provider";
@@ -17,7 +16,6 @@ export class Hardcopy {
   private _config: Config | null = null;
   private _providers = new Map<string, Provider>();
   private _conflictStore: ConflictStore | null = null;
-  private _eventBus: EventBus | null = null;
 
   constructor(options: HardcopyOptions) {
     this.root = options.root;
@@ -45,14 +43,7 @@ export class Hardcopy {
     for (const source of this._config.sources) {
       const factory = getProvider(source.provider);
       if (factory) {
-        const provider = factory(source);
-        this._providers.set(source.name, provider);
-        if (provider.streams) {
-          const bus = this.getEventBus();
-          for (const stream of provider.streams) {
-            bus.registerStream(stream);
-          }
-        }
+        this._providers.set(source.name, factory(source));
       }
     }
   }
@@ -78,18 +69,7 @@ export class Hardcopy {
     return this._providers;
   }
 
-  getEventBus(): EventBus {
-    if (!this._eventBus) {
-      this._eventBus = new EventBus(this.getDatabase());
-    }
-    return this._eventBus;
-  }
-
   async close(): Promise<void> {
-    if (this._eventBus) {
-      await this._eventBus.detachAll();
-      this._eventBus = null;
-    }
     if (this._db) {
       await this._db.close();
       this._db = null;

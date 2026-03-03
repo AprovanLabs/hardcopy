@@ -3,7 +3,7 @@ import { githubIssueFormat } from "../formats/github-issue";
 import "../providers";
 
 import { Hardcopy } from "./core";
-import { sync, syncSource } from "./sync";
+import { sync } from "./sync";
 import { getViews, refreshView } from "./views";
 import { diff, getChangedFiles } from "./diff";
 import {
@@ -21,11 +21,10 @@ registerFormat(githubIssueFormat);
 declare module "./core" {
   interface Hardcopy {
     sync(): Promise<import("./types").SyncStats>;
-    syncSource(sourceName: string): Promise<import("./types").SyncStats>;
     getViews(): Promise<string[]>;
     refreshView(
       viewPath: string,
-      options?: { clean?: boolean; force?: boolean },
+      options?: { clean?: boolean },
     ): Promise<import("./types").RefreshResult>;
     diff(
       pattern?: string,
@@ -52,7 +51,6 @@ declare module "./core" {
 }
 
 Hardcopy.prototype.sync = sync;
-Hardcopy.prototype.syncSource = syncSource;
 Hardcopy.prototype.getViews = getViews;
 Hardcopy.prototype.refreshView = refreshView;
 Hardcopy.prototype.diff = diff;
