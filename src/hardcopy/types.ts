@@ -40,7 +40,6 @@ export interface DiffResult {
   nodeId: string;
   nodeType: string;
   filePath: string;
-  viewRelPath: string;
   changes: Change[];
 }
 

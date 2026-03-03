@@ -43,8 +43,7 @@ export async function getChangedFiles(
 
       const dbNode = await db.getNode(nodeId);
       const fileMtime = fileStat.mtimeMs;
-      const fileSyncedAt = await db.getFileSyncedAt(nodeId, viewRelPath);
-      const syncedAt = fileSyncedAt ?? dbNode?.syncedAt ?? 0;
+      const syncedAt = dbNode?.syncedAt ?? 0;
 
       if (fileMtime > syncedAt) {
         changedFiles.push({
@@ -78,7 +77,7 @@ export async function diff(
   if (useSmart && pattern) {
     const candidates = await getChangedFiles.call(this, pattern);
     for (const candidate of candidates) {
-      const result = await diffFile.call(this, candidate.fullPath, candidate.path, db);
+      const result = await diffFile.call(this, candidate.fullPath, db);
       if (result && result.changes.length > 0) {
         results.push(result);
       }
@@ -102,7 +101,7 @@ export async function diff(
         if (!isExactMatch && !isGlobMatch && !isPrefixMatch) continue;
       }
 
-      const result = await diffFile.call(this, fullPath, viewRelPath, db);
+      const result = await diffFile.call(this, fullPath, db);
       if (result && result.changes.length > 0) {
         results.push(result);
       }
@@ -115,7 +114,6 @@ export async function diff(
 async function diffFile(
   this: Hardcopy,
   fullPath: string,
-  viewRelPath: string,
   db: ReturnType<Hardcopy["getDatabase"]>,
 ): Promise<DiffResult | null> {
   try {
@@ -132,7 +130,6 @@ async function diffFile(
         nodeId,
         nodeType: nodeType ?? "unknown",
         filePath: fullPath,
-        viewRelPath,
         changes: [{ field: "_new", oldValue: null, newValue: parsed.attrs }],
       };
     }
@@ -145,7 +142,6 @@ async function diffFile(
       nodeId,
       nodeType: dbNode.type,
       filePath: fullPath,
-      viewRelPath,
       changes,
     };
   } catch {

@@ -1,3 +1,7 @@
+import { registerFormat } from "../format";
+import { githubIssueFormat } from "../formats/github-issue";
+import "../providers";
+
 import { Hardcopy } from "./core";
 import { sync, syncSource } from "./sync";
 import { getViews, refreshView } from "./views";
@@ -10,6 +14,8 @@ import {
   getConflictDetail,
   resolveConflict,
 } from "./push";
+
+registerFormat(githubIssueFormat);
 
 // Extend Hardcopy prototype with operation methods
 declare module "./core" {

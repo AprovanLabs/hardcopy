@@ -146,7 +146,6 @@ export interface ConflictInfo {
   nodeId: string;
   nodeType: string;
   filePath: string;
-  viewRelPath: string;
   detectedAt: number;
   fields: FieldConflict[];
 }
