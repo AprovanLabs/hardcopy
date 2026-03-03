@@ -397,6 +397,78 @@ streamCmd
   });
 
 streamCmd
+  .command("watch")
+  .description("Start background ingestion for all configured streams")
+  .action(async () => {
+    const hc = new Hardcopy({ root: process.cwd() });
+    await hc.initialize();
+    await hc.loadConfig();
+    const bus = hc.getEventBus();
+    const providers = hc.getProviders();
+
+    process.on("SIGINT", async () => {
+      await hc.close();
+      process.exit(0);
+    });
+
+    let attached = 0;
+    for (const [, provider] of providers) {
+      if (provider.streams && provider.subscribe) {
+        for (const stream of provider.streams) {
+          await bus.attach(provider, stream.name);
+          console.log(`Attached to stream: ${stream.name}`);
+          attached++;
+        }
+      }
+    }
+
+    if (attached === 0) {
+      console.log("No streamable providers found");
+      await hc.close();
+      return;
+    }
+
+    console.log(`Watching ${attached} streams (Ctrl+C to stop)...`);
+  });
+
+streamCmd
+  .command("tail <stream>")
+  .description("Tail a stream (live events)")
+  .option("-n, --count <count>", "Number of historical events to show", "10")
+  .action(async (stream: string, options: { count: string }) => {
+    const hc = new Hardcopy({ root: process.cwd() });
+    await hc.initialize();
+    await hc.loadConfig();
+    const bus = hc.getEventBus();
+
+    const history = await bus.query(stream, {}, parseInt(options.count, 10));
+    for (const event of history.events.reverse()) {
+      printEvent(event);
+    }
+
+    bus.subscribe({}, (events) => {
+      for (const event of events) {
+        if (event.stream === stream) printEvent(event);
+      }
+    });
+
+    const providers = hc.getProviders();
+    for (const [, provider] of providers) {
+      if (provider.streams?.some((s) => s.name === stream) && provider.subscribe) {
+        await bus.attach(provider, stream);
+        break;
+      }
+    }
+
+    process.on("SIGINT", async () => {
+      await hc.close();
+      process.exit(0);
+    });
+
+    console.log(`Tailing ${stream} (Ctrl+C to stop)...`);
+  });
+
+streamCmd
   .command("query <stream>")
   .description("Query historical events from a stream")
   .option("--since <duration>", "Duration like '2h' or ISO timestamp")

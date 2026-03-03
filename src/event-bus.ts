@@ -1,12 +1,15 @@
 import type { HardcopyDatabase } from "./db";
+import type { Provider } from "./provider";
 import type { Event, EventFilter, EventPage, Stream } from "./types";
 
 type Subscriber = (events: Event[]) => void;
 type Unsubscribe = () => void;
+type Detach = () => void;
 
 export class EventBus {
   private db: HardcopyDatabase;
   private subscribers = new Map<string, Set<Subscriber>>();
+  private detachers = new Map<string, Detach>();
   private streams = new Map<string, Stream>();
 
   constructor(db: HardcopyDatabase) {
@@ -59,10 +62,54 @@ export class EventBus {
     return this.db.queryStreamEvents(stream, filter, limit, cursor);
   }
 
+  async attach(provider: Provider, streamName: string): Promise<Detach> {
+    if (!provider.subscribe) {
+      throw new Error(`Provider ${provider.name} does not support streaming`);
+    }
+
+    const key = `${provider.name}:${streamName}`;
+    if (this.detachers.has(key)) {
+      return this.detachers.get(key)!;
+    }
+
+    let cancelled = false;
+    const iterator = provider.subscribe(streamName);
+
+    const run = async () => {
+      try {
+        for await (const batch of iterator) {
+          if (cancelled) break;
+          await this.emit(batch);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error(`Stream ${key} error:`, err);
+        }
+      }
+    };
+
+    run();
+
+    const detach = () => {
+      cancelled = true;
+      this.detachers.delete(key);
+    };
+
+    this.detachers.set(key, detach);
+    return detach;
+  }
+
   async prune(stream: string): Promise<number> {
     const streamDef = this.streams.get(stream);
     if (!streamDef?.retention) return 0;
     return this.db.pruneEvents(stream, streamDef.retention);
+  }
+
+  async detachAll(): Promise<void> {
+    for (const detach of this.detachers.values()) {
+      detach();
+    }
+    this.detachers.clear();
   }
 
   private filterKey(filter: EventFilter): string {

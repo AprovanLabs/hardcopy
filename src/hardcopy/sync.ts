@@ -24,13 +24,12 @@ export async function sync(this: Hardcopy): Promise<SyncStats> {
     }
 
     try {
-      const existingNodes = await db.queryNodes();
-      const sourceNodes = existingNodes.filter((n) => n.id.startsWith(`${source.provider}:`));
-      const latestSync = sourceNodes.reduce(
+      const existingNodes = await db.queryNodes(provider.nodeTypes[0]);
+      const latestSync = existingNodes.reduce(
         (max, n) => Math.max(max, n.syncedAt ?? 0),
         0,
       );
-      const latestToken = sourceNodes.find((n) => n.versionToken)?.versionToken;
+      const latestToken = existingNodes.find((n) => n.versionToken)?.versionToken;
 
       const strategy = source.sync?.strategy ?? "full";
 
@@ -98,13 +97,12 @@ export async function syncSource(
   }
 
   try {
-    const existingNodes = await db.queryNodes();
-    const sourceNodes = existingNodes.filter((n) => n.id.startsWith(`${source.provider}:`));
-    const latestSync = sourceNodes.reduce(
+    const existingNodes = await db.queryNodes(provider.nodeTypes[0]);
+    const latestSync = existingNodes.reduce(
       (max, n) => Math.max(max, n.syncedAt ?? 0),
       0,
     );
-    const latestToken = sourceNodes.find((n) => n.versionToken)?.versionToken;
+    const latestToken = existingNodes.find((n) => n.versionToken)?.versionToken;
 
     const result = await provider.fetch({
       query: {},
