@@ -1,5 +1,4 @@
 import type { Change, ConflictInfo } from "../types";
-import type { NodeChange } from "../hooks/diff";
 
 export interface HardcopyOptions {
   root: string;
@@ -9,7 +8,6 @@ export interface SyncStats {
   nodes: number;
   edges: number;
   errors: string[];
-  changes: NodeChange[];
 }
 
 export interface StatusInfo {

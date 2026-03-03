@@ -13,8 +13,4 @@ export * from "./llm-merge";
 export * from "./rate-limit";
 export * from "./event-bus";
 export * from "./sync-scheduler";
-export * from "./hooks/diff";
-export * from "./hooks/match";
-export * from "./hooks/template";
-export { HookRunner } from "./hooks/index";
 export { createMcpServer, serveMcp } from "./mcp-server";

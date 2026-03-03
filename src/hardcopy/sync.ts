@@ -1,14 +1,12 @@
 import type { Hardcopy } from "./core";
 import type { SyncStats } from "./types";
-import type { NodeChange } from "../hooks/diff";
-import { diffNodes } from "../hooks/diff";
 import { getRateLimiter } from "../rate-limit";
 
 export async function sync(this: Hardcopy): Promise<SyncStats> {
   const config = await this.loadConfig();
   const db = this.getDatabase();
   const providers = this.getProviders();
-  const stats: SyncStats = { nodes: 0, edges: 0, errors: [], changes: [] };
+  const stats: SyncStats = { nodes: 0, edges: 0, errors: [] };
 
   for (const source of config.sources) {
     const provider = providers.get(source.name);
@@ -41,11 +39,6 @@ export async function sync(this: Hardcopy): Promise<SyncStats> {
       });
 
       if (!result.cached) {
-        const priorMap = new Map(
-          (await db.getNodesByIds(result.nodes.map((n) => n.id))).map((n) => [n.id, n]),
-        );
-        const changes = diffNodes(priorMap, result.nodes);
-
         await db.upsertNodes(
           result.nodes.map((n) => ({
             ...n,
@@ -54,12 +47,8 @@ export async function sync(this: Hardcopy): Promise<SyncStats> {
           })),
         );
         await db.upsertEdges(result.edges);
-
         stats.nodes += result.nodes.length;
         stats.edges += result.edges.length;
-        stats.changes.push(...changes);
-
-        await this.getHookRunner()?.evaluate(changes, source.name);
       }
     } catch (err) {
       stats.errors.push(`Error syncing ${source.name}: ${err}`);
@@ -76,7 +65,7 @@ export async function syncSource(
   const config = await this.loadConfig();
   const db = this.getDatabase();
   const providers = this.getProviders();
-  const stats: SyncStats = { nodes: 0, edges: 0, errors: [], changes: [] };
+  const stats: SyncStats = { nodes: 0, edges: 0, errors: [] };
 
   const source = config.sources.find((s) => s.name === sourceName);
   if (!source) {
@@ -112,11 +101,6 @@ export async function syncSource(
     });
 
     if (!result.cached) {
-      const priorMap = new Map(
-        (await db.getNodesByIds(result.nodes.map((n) => n.id))).map((n) => [n.id, n]),
-      );
-      const changes = diffNodes(priorMap, result.nodes);
-
       await db.upsertNodes(
         result.nodes.map((n) => ({
           ...n,
@@ -125,12 +109,8 @@ export async function syncSource(
         })),
       );
       await db.upsertEdges(result.edges);
-
       stats.nodes += result.nodes.length;
       stats.edges += result.edges.length;
-      stats.changes.push(...changes);
-
-      await this.getHookRunner()?.evaluate(changes, source.name);
     }
   } catch (err) {
     stats.errors.push(`Error syncing ${source.name}: ${err}`);

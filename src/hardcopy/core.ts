@@ -4,7 +4,6 @@ import { Database } from "../db";
 import { CRDTStore } from "../crdt";
 import { ConflictStore } from "../conflict-store";
 import { EventBus } from "../event-bus";
-import { HookRunner } from "../hooks/index";
 import { loadEnvFile } from "../env";
 import { loadConfig, type Config } from "../config";
 import { getProvider, type Provider } from "../provider";
@@ -19,7 +18,6 @@ export class Hardcopy {
   private _providers = new Map<string, Provider>();
   private _conflictStore: ConflictStore | null = null;
   private _eventBus: EventBus | null = null;
-  private _hookRunner: HookRunner | null = null;
 
   constructor(options: HardcopyOptions) {
     this.root = options.root;
@@ -57,9 +55,6 @@ export class Hardcopy {
         }
       }
     }
-    if (this._config.hooks?.length) {
-      this._hookRunner = new HookRunner(this._config.hooks, this.dataDir);
-    }
   }
 
   getDatabase(): Database {
@@ -88,10 +83,6 @@ export class Hardcopy {
       this._eventBus = new EventBus(this.getDatabase());
     }
     return this._eventBus;
-  }
-
-  getHookRunner(): HookRunner | null {
-    return this._hookRunner;
   }
 
   async close(): Promise<void> {
